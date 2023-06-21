@@ -6,7 +6,7 @@ install_requires = []
 
 [project]
 authors = [
-  {name = "Joao Morado", email = "joao.morado@noc.ac.uk"},
+  {name = "Joao Morado", email = "joao.morado@noc.ac.uk"}
 ]
 classifiers = [
   "License :: OSI Approved :: GPL License",
@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
   "scipy",
-  "numpy",
+  "numpy"
 ]
 description = "Estimator of ship tracks."
 dynamic = ["version"]
@@ -72,7 +72,6 @@ select = [
   # pydocstyle
   "D"
 ]
-
 
 [tool.setuptools.packages.find]
 namespaces = true
