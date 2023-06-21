@@ -93,6 +93,55 @@ class UnscentedKalmanFilter:
 
         return self.weights
 
+    def predict(self, dt, sog_rate, cog_rate):
+        """
+        Predict the state and covariance matrix.
+
+        Notes
+        -----
+        Matrix dimensions:
+
+        n_{sigma} = 2n + 1
+        self.sigma_points(n, n_{sigma})
+        self.W(1, n_{sigma})
+
+        """
+        # 1a. Use the prior state estimate and covariance matrix to compute sigma points and Ws
+        # Eq. (4)
+        self.W = self.compute_Ws()
+        diag_W = np.diag(self.W[:, 0])
+
+        self.sigma_points = self.compute_sigma_points()
+
+        # 1b. Pass sigma points through non-linear transformations
+        # Eq. (5)
+        self.sigma_points = self.non_linear_transformation(
+            self.sigma_points, dt, sog_rate, cog_rate
+        )
+
+        # 1c. Compute the a priori state estimate and covariance matrix using the Wed transformed sigma points
+        # Eq. (6)
+
+        self.x = np.dot(self.sigma_points, self.W)
+        # + np.random.multivariate_normal(mean=[0.0, 0.0, 0.0, 0.0], cov=self.Q).reshape(4,1)
+
+        # Eq. (7)
+        S = self.sigma_points - self.x
+        self.P = np.dot(np.dot(S, diag_W), S.T) + self.Q
+
+        """
+        # covariance calculation
+        d = self.sigma_points[:, 0] - self.x
+        self.P = self.W[0, :] * (d @ d.T)
+        for i in range(1, self.n_sigma_points):
+            d = self.sigma_points[:, i] - self.x
+            self.P += self.W[i, :] * (d @ d.T)
+
+        self.P = self.P + self.Q
+        """
+
+        return self.x, self.P
+
     def update(self, z):
         # 2a. Compute the Kalman gain using the a priori covariance
         # Innovation covariance

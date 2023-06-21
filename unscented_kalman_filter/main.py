@@ -1,11 +1,19 @@
-import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
 import numpy as np
-
-from filterpy.kalman import UnscentedKalmanFilter, MerweScaledSigmaPoints
 from filterpy.common import Q_discrete_white_noise
-from utils import get_historical_ship_data, z_mean, state_mean, get_cog, get_sog, get_cog_rate, get_sog_rate
-from unscented_kalman_filter import hx, fx
+from filterpy.kalman import MerweScaledSigmaPoints, UnscentedKalmanFilter
+from utils import (
+    get_cog,
+    get_cog_rate,
+    get_historical_ship_data,
+    get_sog,
+    get_sog_rate,
+    state_mean,
+    z_mean,
+)
+
+from unscented_kalman_filter import fx, hx
 
 dim_x = 4
 dim_z = 2
@@ -23,25 +31,28 @@ sog_rate = get_sog_rate(sog, dts)
 cog_rate = get_cog_rate(cog, dts)
 
 # Create sigma points
-sigma_points = MerweScaledSigmaPoints(4, alpha=.1, beta=2., kappa=-1)
+sigma_points = MerweScaledSigmaPoints(4, alpha=0.1, beta=2.0, kappa=-1)
 
 # Create the Unscented Kalman Filter instance
-ukf = UnscentedKalmanFilter(dim_x=dim_x, 
-                            dim_z=dim_z, 
-                            dt=dts[0], 
-                            fx=fx, hx=hx, 
-                            points=sigma_points,
-                            x_mean_fn=state_mean,
-                            z_mean_fn=z_mean)
+ukf = UnscentedKalmanFilter(
+    dim_x=dim_x,
+    dim_z=dim_z,
+    dt=dts[0],
+    fx=fx,
+    hx=hx,
+    points=sigma_points,
+    x_mean_fn=state_mean,
+    z_mean_fn=z_mean,
+)
 
 # Define the covariance matrices
 x_std = np.radians(0.5)
-ukf.P = np.diag([x_std**2, x_std**2, 10.**2, np.radians(0.5)**2])
+ukf.P = np.diag([x_std**2, x_std**2, 10.0**2, np.radians(0.5) ** 2])
 z_std = np.radians(0.5)
-ukf.R = np.diag([z_std**2, z_std**2]) 
+ukf.R = np.diag([z_std**2, z_std**2])
 
 # Define the initial state
-ukf.x = np.array([np.radians(lon[0]), np.radians(lat[0]), 0., 0.])
+ukf.x = np.array([np.radians(lon[0]), np.radians(lat[0]), 0.0, 0.0])
 
 
 # For batch processing
@@ -62,17 +73,21 @@ for i, z in enumerate(zs[:-1]):
     dts_substep[-1] += remainder
 
     for dt_substep in dts_substep[:-1]:
-        ukf.Q = Q_discrete_white_noise(dim=dim_z, dt=dt_substep, var=0.001**2, block_size=2)
+        ukf.Q = Q_discrete_white_noise(
+            dim=dim_z, dt=dt_substep, var=0.001**2, block_size=2
+        )
         ukf.predict(dt=dt_substep)
         xs.append(ukf.x)
         covs.append(ukf.P)
 
-    ukf.Q = Q_discrete_white_noise(dim=dim_z, dt=dts_substep[-1], var=0.001**2, block_size=2)
+    ukf.Q = Q_discrete_white_noise(
+        dim=dim_z, dt=dts_substep[-1], var=0.001**2, block_size=2
+    )
     ukf.predict(dt=dts_substep[-1])
     ukf.update(z)
     xs.append(ukf.x)
     covs.append(ukf.P)
-    print(ukf.x, 'log-likelihood', ukf.log_likelihood)
+    print(ukf.x, "log-likelihood", ukf.log_likelihood)
 
 
 xs = np.asarray(xs)
@@ -104,10 +119,10 @@ alpha = 0.4
 ax = plt.axes(projection=ccrs.PlateCarree())
 ax.stock_img()
 xs = np.degrees(np.asarray(xs))
-ax.scatter(xs[:, 0], xs[:, 1], label='Kalman Filter Prediction', s=5, alpha=alpha)
+ax.scatter(xs[:, 0], xs[:, 1], label="Kalman Filter Prediction", s=5, alpha=alpha)
 ax.scatter(lon, lat, label="Measurements", s=5, alpha=alpha)
-ax.plot(xs[:, 0], xs[:, 1],  alpha=alpha)
+ax.plot(xs[:, 0], xs[:, 1], alpha=alpha)
 ax.plot(lon, lat, alpha=alpha)
-#ax.set_extent([-40, -20, -40, -10])
+# ax.set_extent([-40, -20, -40, -10])
 plt.legend()
 plt.show()

@@ -1,28 +1,27 @@
 import numpy as np
 
 # Constants
-EARTH_RADIUS = 6378.137 # in km
+EARTH_RADIUS = 6378.137  # in km
 
 
 def hx(x):
-   """
-   TODO write docstring
-   """
-   # measurement function - convert state into a measurement
-   # where measurements are [x_pos, y_pos]
-   return np.array([x[0], x[1]])
+    """TODO write docstring."""
+    # measurement function - convert state into a measurement
+    # where measurements are [x_pos, y_pos]
+    return np.array([x[0], x[1]])
 
-def fx(x, dt, sog_rate=0., cog_rate=0):
+
+def fx(x, dt, sog_rate=0.0, cog_rate=0):
     """
-    TODO write docstring
+    TODO write docstring.
 
     Notes
     -----
     Dynamics based on the method described in:
-    
-    Cole, B.; Schamberg, G. 
-    Unscented Kalman Filter for Long-Distance Vessel Tracking in Geodetic Coordinates. 
-    Applied Ocean Research 2022, 124, 103205. 
+
+    Cole, B.; Schamberg, G.
+    Unscented Kalman Filter for Long-Distance Vessel Tracking in Geodetic Coordinates.
+    Applied Ocean Research 2022, 124, 103205.
     https://doi.org/10.1016/j.apor.2022.103205.
 
     Parameters
@@ -43,7 +42,7 @@ def fx(x, dt, sog_rate=0., cog_rate=0):
     lon = x[0]
     lat = x[1]
     u = x[2]
-    alpha = x[3] 
+    alpha = x[3]
 
     # Precompute sin and cos of udt_R
     udt_R = u * dt / EARTH_RADIUS
@@ -51,7 +50,7 @@ def fx(x, dt, sog_rate=0., cog_rate=0):
     udt_R_cos = np.cos(udt_R)
 
     # Eq. (35), lon
-    arctan_term_a = udt_R_sin * np.sin(alpha) 
+    arctan_term_a = udt_R_sin * np.sin(alpha)
     arctan_term_b = np.cos(lat) * udt_R_cos - np.sin(lat) * udt_R_sin * np.cos(alpha)
     transformed_lon = lon + np.arctan2(arctan_term_a, arctan_term_b)
 
@@ -65,8 +64,8 @@ def fx(x, dt, sog_rate=0., cog_rate=0):
     # Eq. (35), alpha
     transformed_alpha = alpha + cog_rate * dt
 
-    transformed_x = np.array([transformed_lon, transformed_lat, transformed_u, transformed_alpha])
+    transformed_x = np.array(
+        [transformed_lon, transformed_lat, transformed_u, transformed_alpha]
+    )
 
     return transformed_x
-
-
