@@ -1,2 +1,1 @@
-# ship-track-estimators
-Estimators of historical ships track
+# Estimators of historical ship tracks
