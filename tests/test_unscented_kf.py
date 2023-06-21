@@ -9,12 +9,15 @@ def ukf():
     # Define system dynamics
     H = np.diag([1, 1])
 
+    # Estimate Covariance
+    P = np.diag([0.2, 0.9])
+
     # Define initial state
     x = np.array([0.5, 0.8])
     x = x.reshape(-1, 1)
 
     # Instantiate the UKF
-    ukf = UnscentedKalmanFilter(H=H, x0=x)
+    ukf = UnscentedKalmanFilter(H=H, P=P, x0=x)
 
     return ukf
 
@@ -30,10 +33,11 @@ def test_sigma_points(ukf):
     # Compute sigma points
     ukf.compute_sigma_points()
 
-    # Check that the sigma points have the same mean
+    # Check that the average of the sigma points is equal to the mean
     assert np.all(np.isclose(ukf.x[:, 0], np.mean(ukf.sigma_points, axis=1)))
 
-    # TODO: check that the weighted sigma points have the same covariance
+    # Check that the sigma points have the same covariance as the estimate covariance matrix
+    assert np.all(np.isclose(ukf.P, np.cov(ukf.sigma_points)))
 
 
 def test_weights(ukf):
@@ -60,18 +64,16 @@ def test_weighted_sigma_points(ukf):
 
     Notes
     -----
-    The weighted sigma points should have the same mean and covariance as the state.
+    The weighted sigma points should have the same mean as the state.
     """
-    # Compute sigma points
-    ukf.compute_sigma_points()
-
     # Compute weights
     ukf.compute_weights()
+
+    # Compute sigma points
+    ukf.compute_sigma_points()
 
     # Compute weighted sigma points
     weighted_sigma = np.dot(ukf.sigma_points, ukf.weights)
 
-    # Check that the weighted sigma points have the same mean
+    # Check that the weighted average of the sigma points is equal to the mean
     assert np.all(np.isclose(ukf.x[:, 0], np.sum(weighted_sigma, axis=1)))
-
-    # TODO: check that the weighted sigma points have the same covariance
