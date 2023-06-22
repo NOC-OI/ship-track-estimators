@@ -2,7 +2,7 @@ import numpy as np
 from constants import EARTH_RADIUS
 
 
-def fx(x, dt, sog_rate=0.0, cog_rate=0):
+def fx(x, dt: float, sog_rate=0.0, cog_rate=0.0):
     """
     TODO write docstring.
 
