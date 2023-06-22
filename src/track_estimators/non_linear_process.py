@@ -1,37 +1,30 @@
 import numpy as np
-from constants import EARTH_RADIUS
+
+from .constants import EARTH_RADIUS
 
 
-def fx(x, dt: float, sog_rate=0.0, cog_rate=0.0):
+def fx(x: np.ndarray, dt: float, sog_rate: float = 0.0, cog_rate: float = 0.0):
     """
-    TODO write docstring.
-
-    Notes
-    -----
-    Dynamics based on the method described in:
-
-    Cole, B.; Schamberg, G.
-    Unscented Kalman Filter for Long-Distance Vessel Tracking in Geodetic Coordinates.
-    Applied Ocean Research 2022, 124, 103205.
-    https://doi.org/10.1016/j.apor.2022.103205.
+    Summary.
 
     Parameters
     ----------
-    x
-        _description_
-    dt
-        _description_
-    sog_rate, optional
-        _description_, by default 0.
-    cog_rate, optional
-        _description_, by default 0
+    x : numpy.ndarray, shape=(4,)
+        State vector representing [longitude, latitude, velocity, heading].
+    dt : float
+        Time step.
+    sog_rate : float, optional
+        Speed over ground rate, by default 0.0.
+    cog_rate : float, optional
+        Course over ground rate, by default 0.0.
 
     Returns
     -------
-        _description_
+    numpy.ndarray, shape=(4,)
+        Transformed state vector representing [longitude, latitude, velocity, heading].
     """
-    lon = x[0]
-    lat = x[1]
+    lon = np.radians(x[0])
+    lat = np.radians(x[1])
     u = x[2]
     alpha = x[3]
 
@@ -44,10 +37,11 @@ def fx(x, dt: float, sog_rate=0.0, cog_rate=0.0):
     arctan_term_a = udt_R_sin * np.sin(alpha)
     arctan_term_b = np.cos(lat) * udt_R_cos - np.sin(lat) * udt_R_sin * np.cos(alpha)
     transformed_lon = lon + np.arctan2(arctan_term_a, arctan_term_b)
+    transformed_lon = np.degrees(transformed_lon)  # convert to degrees
 
     # Eq. (35), lat
     transformed_lat = np.sin(lat) * udt_R_cos + np.cos(lat) * udt_R_sin * np.cos(alpha)
-    transformed_lat = np.arcsin(transformed_lat)
+    transformed_lat = np.degrees(np.arcsin(transformed_lat))  # convert to degrees
 
     # Eq. (35), u
     transformed_u = u + sog_rate * dt
