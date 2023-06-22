@@ -52,7 +52,7 @@ def test_weights(ukf):
     ukf.compute_weights()
 
     # Check that weights sum to 1 (i.e., they are normalized)
-    assert np.isclose(np.sum(ukf.weights), 1.0)
+    assert np.isclose(np.sum(np.diag(ukf.weights)), 1.0)
 
     # Check that the matrix is diagonal
     assert np.count_nonzero(ukf.weights - np.diag(np.diagonal(ukf.weights))) == 0
@@ -72,8 +72,13 @@ def test_weighted_sigma_points(ukf):
     # Compute sigma points
     ukf.compute_sigma_points()
 
-    # Compute weighted sigma points
-    weighted_sigma = np.dot(ukf.sigma_points, ukf.weights)
-
     # Check that the weighted average of the sigma points is equal to the mean
-    assert np.all(np.isclose(ukf.x[:, 0], np.sum(weighted_sigma, axis=1)))
+    assert np.all(
+        np.isclose(ukf.x[:, 0], np.sum(np.dot(ukf.sigma_points, ukf.weights), axis=1))
+    )
+
+    # Check that the sigma points have the same covariance as the estimate covariance matrix
+    residuals = ukf.sigma_points - ukf.x
+    assert np.all(
+        np.isclose(ukf.P, np.dot(np.dot(residuals, ukf.weights), residuals.T))
+    )
