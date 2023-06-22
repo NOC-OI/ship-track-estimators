@@ -10,6 +10,7 @@ import logging
 from typing import Callable
 
 import numpy as np
+import scipy.linalg
 
 
 class UnscentedKalmanFilter:
@@ -70,8 +71,8 @@ class UnscentedKalmanFilter:
             Sigma points of the unscented kalman filter.
         """
         term = self.n / (1 - self.weights[0, 0])
-        term = term * self.P_orig
-        term = np.sqrt(term)
+        term = term * self.P
+        term = scipy.linalg.sqrtm(term)
 
         # Eq. (4a)
         self.sigma_points[:, 0] = self.x[:, 0]
@@ -194,6 +195,7 @@ class UnscentedKalmanFilter:
 
         # Eq. (11), update (correct) the covariance
         identity = np.eye(self.n)
+
         self.P = np.dot(
             np.dot(identity - np.dot(K, self.H), self.P),
             (identity - np.dot(K, self.H)).T,

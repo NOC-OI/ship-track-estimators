@@ -131,6 +131,7 @@ class ShipTrack:
         self.cog_rate = []
 
         for i in range(1, len(self.cog)):
+            print(self.cog[i], self.cog[i - 1])
             self.cog_rate.append((self.cog[i] - self.cog[i - 1]) / self.dts[i - 1])
 
         self.cog_rate = np.asarray(self.cog_rate)
@@ -152,5 +153,7 @@ class ShipTrack:
         if self.cog is None:
             self.calculate_cog()
 
+        # z = np.vstack((self.lon, self.lat, self.sog, self.cog))
         z = np.vstack((self.lon, self.lat, self.sog, self.cog))
+
         return z

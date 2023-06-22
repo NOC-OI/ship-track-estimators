@@ -73,5 +73,6 @@ def heading(lon1, lat1, lon2, lat2):
 
     heading = np.arctan2(x, y)
     heading = np.degrees(heading)
+    heading = (heading + 360) % 360
 
     return heading

@@ -26,7 +26,7 @@ def fx(x: np.ndarray, dt: float, sog_rate: float = 0.0, cog_rate: float = 0.0):
     lon = np.radians(x[0])
     lat = np.radians(x[1])
     u = x[2]
-    alpha = x[3]
+    alpha = np.radians(x[3])
 
     # Precompute sin and cos of udt_R
     udt_R = u * dt / EARTH_RADIUS
@@ -47,7 +47,7 @@ def fx(x: np.ndarray, dt: float, sog_rate: float = 0.0, cog_rate: float = 0.0):
     transformed_u = u + sog_rate * dt
 
     # Eq. (35), alpha
-    transformed_alpha = alpha + cog_rate * dt
+    transformed_alpha = np.degrees(alpha) + cog_rate * dt
 
     transformed_x = np.array(
         [transformed_lon, transformed_lat, transformed_u, transformed_alpha]
