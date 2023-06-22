@@ -10,11 +10,10 @@ def ukf():
     H = np.diag([1, 1])
 
     # Estimate Covariance
-    P = np.diag([0.2, 0.9])
+    P = np.diag([np.random.uniform(0, 1), np.random.uniform(0, 1)])
 
     # Define initial state
-    x = np.array([0.5, 0.8])
-    x = x.reshape(-1, 1)
+    x = np.array([np.random.uniform(0, 1), np.random.uniform(0, 1)]).reshape(-1, 1)
 
     # Instantiate the UKF
     ukf = UnscentedKalmanFilter(H=H, P=P, x0=x)
@@ -52,7 +51,11 @@ def test_weights(ukf):
     ukf.compute_weights()
 
     # Check that weights sum to 1 (i.e., they are normalized)
-    assert np.isclose(np.sum(np.diag(ukf.weights)), 1.0)
+    assert np.isclose(np.trace(ukf.weights), 1.0)
+
+    # Check that weight0 is in range[-1, 1]
+    weight0 = ukf.weights[0, 0]
+    assert weight0 < 1.0 and weight0 > -1.0
 
     # Check that the matrix is diagonal
     assert np.count_nonzero(ukf.weights - np.diag(np.diagonal(ukf.weights))) == 0
