@@ -7,7 +7,7 @@ Applied Ocean Research 2022, 124, 103205.
 https://doi.org/10.1016/j.apor.2022.103205.
 """
 import logging
-from typing import Any, Callable
+from typing import Callable
 
 import numpy as np
 
@@ -120,7 +120,7 @@ class UnscentedKalmanFilter:
     def predict(
         self,
         non_linear_process: Callable | None = None,
-        non_linear_process_kwargs: dict[str, Any] | None = None,
+        **non_linear_process_kwargs,
     ) -> None:
         """
         Predict the state and covariance matrix.
@@ -150,10 +150,8 @@ class UnscentedKalmanFilter:
             non_linear_process
         ), "Non-linear process model must be callable."
 
-        # Set the
-        non_linear_process_kwargs = (
-            {} if non_linear_process_kwargs is None else non_linear_process_kwargs
-        )
+        # Ensure correct shape of state vector
+        self.x = self.x.reshape(-1, 1)
 
         # 1a. Use the prior state estimate and covariance matrix to compute sigma points and weights
         # Eq. (4)
@@ -162,19 +160,23 @@ class UnscentedKalmanFilter:
 
         # 1b. Pass sigma points through the non linear process model
         # Eq. (5)
-        self.sigma_points = non_linear_process(
-            self.sigma_points, **non_linear_process_kwargs
-        )
+        for sigmap in range(self.n_sigma_points):
+            self.sigma_points[:, sigmap] = non_linear_process(
+                self.sigma_points[:, sigmap], **non_linear_process_kwargs
+            )
 
-        # 1c. Compute the a priori state estimate and covariance matrix using the Wed transformed sigma points
+        # 1c. Compute the a priori state estimate and covariance matrix using the transformed sigma points
         # Eq. (6)
-        self.x = np.dot(self.sigma_points, self.weights)
+        self.x = np.sum(np.dot(self.sigma_points, self.weights), axis=1, keepdims=True)
 
         # Eq. (7)
         S = self.sigma_points - self.x
         self.P = np.dot(np.dot(S, self.weights), S.T) + self.Q
 
-    def update(self, z) -> None:
+    def update(self, z: np.ndarray) -> None:
+        # Ensure correct shape of observation vector
+        z = z.reshape(-1, 1)
+
         # 2a. Compute the Kalman gain using the a priori covariance
         # Innovation covariance
         S = np.dot(self.H, np.dot(self.P, self.H.T)) + self.R
