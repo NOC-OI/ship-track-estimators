@@ -15,7 +15,6 @@ def test_haversine_formula():
     assert np.isclose(distance, expected_distance, rtol=1e-2)
 
     # Check the distance between Porto and Lisbon
-    # https://www.prokerala.com/travel/distance/from-porto/to-lisbon/
     lat1 = 38.7167
     lon1 = -9.13333
     lat2 = 41.1579
