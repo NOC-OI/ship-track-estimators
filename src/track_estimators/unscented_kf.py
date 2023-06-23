@@ -172,7 +172,10 @@ class UnscentedKalmanFilter:
 
         # Eq. (7)
         S = self.sigma_points - self.x
-        self.P = np.dot(np.dot(S, self.weights), S.T) + self.Q
+        gaussian = np.diag(
+            np.diag(np.random.normal(scale=np.diag(self.Q), size=(self.n, self.n)))
+        )
+        self.P = np.dot(np.dot(S, self.weights), S.T) + gaussian  # self.Q
 
     def update(self, z: np.ndarray) -> None:
         # Ensure correct shape of observation vector
@@ -189,9 +192,15 @@ class UnscentedKalmanFilter:
         # Eq. (9), Innovation
         y = z - np.dot(self.H, self.x)
 
+        # Eq. (43)
+        y[3, 0] = (y[3, 0] + 180.0) % 360 - 180.0
+
         # 2c. Compute the a posteriori state estimate and covariance matrix
         # Eq. (10), update (correct) the state
         self.x = self.x + np.dot(K, y)
+
+        # Eq. (44)
+        self.x[3, 0] = self.x[3, 0] % 360
 
         # Eq. (11), update (correct) the covariance
         identity = np.eye(self.n)
