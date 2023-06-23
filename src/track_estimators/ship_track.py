@@ -131,7 +131,6 @@ class ShipTrack:
         self.cog_rate = []
 
         for i in range(1, len(self.cog)):
-            print(self.cog[i], self.cog[i - 1])
             self.cog_rate.append((self.cog[i] - self.cog[i - 1]) / self.dts[i - 1])
 
         self.cog_rate = np.asarray(self.cog_rate)
