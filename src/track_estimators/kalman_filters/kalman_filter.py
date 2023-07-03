@@ -35,6 +35,9 @@ class KalmanFilterBase:
 
         major_index = 0
 
+        # Save the initial state
+        self.predictions.append(self.x)
+
         for step in range(nsteps):
             # Predict the next state
             self.predict(
