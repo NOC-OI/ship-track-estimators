@@ -8,7 +8,7 @@ class KalmanFilterBase:
 
     def __init__(self, *args, **kwargs):
         self.time = 0
-        self.predictictions = []
+        self.predictions = []
 
     def run(
         self, nsteps: int, dt: int | float, ship_track: ShipTrack, *args, **kwargs
@@ -35,7 +35,7 @@ class KalmanFilterBase:
 
         major_index = 0
 
-        for step in range(1, nsteps):
+        for step in range(nsteps):
             # Predict the next state
             self.predict(
                 dt=dt,
@@ -48,12 +48,9 @@ class KalmanFilterBase:
 
             # Update step
             if self.time in time_cumsum:
-                self.update(
-                    sog_rate=ship_track.sog_rate[major_index - 1],
-                    cog_rate=ship_track.cog_rate[major_index - 1],
-                )
-
                 major_index += 1
+
+                self.update(ship_track.z[:, major_index])
 
             # Save the predictions
             self.predictions.append(self.x)
