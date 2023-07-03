@@ -3,14 +3,17 @@ import numpy as np
 from .constants import EARTH_RADIUS
 
 
-def fx(x: np.ndarray, dt: float, sog_rate: float = 0.0, cog_rate: float = 0.0):
+def geodetic_dynamics(
+    x: np.ndarray, dt: float, sog_rate: float = 0.0, cog_rate: float = 0.0
+):
     """
-    Summary.
+    Update step of the geodetic process model.
 
     Parameters
     ----------
     x : numpy.ndarray, shape=(4,)
         State vector representing [longitude, latitude, velocity, heading].
+        Longitide, latitude and heading are assumed to be in degrees.
     dt : float
         Time step.
     sog_rate : float, optional
@@ -22,6 +25,16 @@ def fx(x: np.ndarray, dt: float, sog_rate: float = 0.0, cog_rate: float = 0.0):
     -------
     numpy.ndarray, shape=(4,)
         Transformed state vector representing [longitude, latitude, velocity, heading].
+        Longitide, latitude and heading are given in degrees to be in degrees.
+
+    Notes
+    -----
+    Equations taken from Section 2 of the following paper:
+
+    Cole, B.; Schamberg, G.
+    Unscented Kalman Filter for Long-Distance Vessel Tracking in Geodetic Coordinates.
+    Applied Ocean Research 2022, 124, 103205.
+    https://doi.org/10.1016/j.apor.2022.103205.
     """
     lon = np.radians(x[0])
     lat = np.radians(x[1])
