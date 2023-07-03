@@ -43,6 +43,8 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         non_linear_process
             Non-linear process model.
         """
+        super().__init__()
+
         if H is None:
             raise ValueError("Set proper system dynamics.")
 
@@ -172,16 +174,25 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         # Eq. (6)
         self.x = np.sum(np.dot(self.sigma_points, self.weights), axis=1, keepdims=True)
 
+        # Eq. (1) process model is affected by additive, zero-mean Gaussian noise
+        gaussian = np.random.normal(
+            scale=np.sqrt(np.diag(self.Q)), size=(self.n)
+        ).reshape(-1, 1)
+        self.x += gaussian
+
         # Eq. (7)
         S = self.sigma_points - self.x
-        gaussian = np.diag(
-            np.diag(np.random.normal(scale=np.diag(self.Q), size=(self.n, self.n)))
-        )
-        self.P = np.dot(np.dot(S, self.weights), S.T) + gaussian  # self.Q
+
+        self.P = np.dot(np.dot(S, self.weights), S.T) + self.Q
 
     def update(self, z: np.ndarray) -> None:
         # Ensure correct shape of observation vector
         z = z.reshape(-1, 1)
+
+        # Add measurement noise
+        z += np.random.normal(scale=np.sqrt(np.diag(self.R)), size=(self.n)).reshape(
+            -1, 1
+        )
 
         # 2a. Compute the Kalman gain using the a priori covariance
         # Innovation covariance
@@ -195,14 +206,14 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         y = z - np.dot(self.H, self.x)
 
         # Eq. (43)
-        y[3, 0] = (y[3, 0] + 180.0) % 360 - 180.0
+        # y[3, 0] = (y[3, 0] + 180.0) % 360 - 180.0
 
         # 2c. Compute the a posteriori state estimate and covariance matrix
         # Eq. (10), update (correct) the state
         self.x = self.x + np.dot(K, y)
 
         # Eq. (44)
-        self.x[3, 0] = self.x[3, 0] % 360
+        # self.x[3, 0] = self.x[3, 0] % 360
 
         # Eq. (11), update (correct) the covariance
         identity = np.eye(self.n)
