@@ -1,7 +1,7 @@
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
-from track_estimators.kalman_filters.non_linear_process import fx
+from track_estimators.kalman_filters.non_linear_process import geodetic_dynamics
 from track_estimators.kalman_filters.unscented import UnscentedKalmanFilter
 from track_estimators.ship_track import ShipTrack
 
@@ -43,29 +43,11 @@ x0 = z[:, 0].reshape(-1, 1)
 # -------------------------------------------------------------- #
 
 # Create the unscented kalman filter
-ukf = UnscentedKalmanFilter(H=H, Q=Q, R=R, P=P, x0=x0, non_linear_process=fx)
+ukf = UnscentedKalmanFilter(
+    H=H, Q=Q, R=R, P=P, x0=x0, non_linear_process=geodetic_dynamics
+)
 
 predictions = []
-
-ukf.update(z[:, 0])
-predictions.append(ukf.x)
-
-substeps = 4
-for step in range(1, len(ship_track.lat)):
-    for i in range(int(substeps)):
-        ukf.predict(
-            dt=ship_track.dts[step - 1] / substeps,
-            sog_rate=ship_track.sog_rate[step - 1],
-            cog_rate=ship_track.cog_rate[step - 1],
-        )
-
-        if i < substeps - 1:
-            predictions.append(ukf.x)
-
-    ukf.update(z[:, step])
-    predictions.append(ukf.x)
-
-predictions = np.asarray(predictions)
 
 
 ms = 10

@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from track_estimators.unscented_kf import UnscentedKalmanFilter
+from track_estimators.kalman_filters.unscented import UnscentedKalmanFilter
 
 
 @pytest.fixture
