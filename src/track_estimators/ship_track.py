@@ -22,6 +22,9 @@ class ShipTrack:
         self.sog_rate = self.calculate_sog_rate()
         self.cog_rate = self.calculate_cog_rate()
 
+        # Measurements
+        self.z = self.get_measurements()
+
     def read_csv(self, csv_file: str, ship_id: str | None = None) -> pd.DataFrame:
         # Read the csv file
         self.df = pd.read_csv(csv_file)
@@ -64,24 +67,15 @@ class ShipTrack:
         """
         Calculate the speed over ground.
 
+        Returns
+        -------
+        self.sog
+            A list of floats representing the speed over ground
+
         Notes
         -----
         This function calculates the speed over ground (SOG) given a series of longitude,
         latitude, and time intervals.
-
-        Parameters
-        ----------
-        lon
-            A list or array floats representing the longitude coordinates
-        lat
-            A list or array floats representing the latitude coordinates
-        dts
-            A list or array of floats representing the time intervals
-
-        Returns
-        -------
-        sog
-            A list of floats representing the speed over ground
         """
         self.sog = []
 
@@ -98,7 +92,19 @@ class ShipTrack:
 
         return self.sog
 
-    def calculate_sog_rate(self):
+    def calculate_sog_rate(self) -> np.ndarray:
+        """
+        Calculate the speed over ground (SOG) rate.
+
+        Returns
+        -------
+        self.sog_rate
+            An array representing the speed over ground rate.
+
+        Notes
+        -----
+        The backward difference is used to calculate the SOG rate.
+        """
         if self.sog is None:
             self.calculate_sog()
 
@@ -112,6 +118,19 @@ class ShipTrack:
         return self.sog_rate
 
     def calculate_cog(self):
+        """
+        Calculate the course over ground (COG).
+
+        Returns
+        -------
+        self.cog
+            A list of floats representing the course over ground
+
+        Notes
+        -----
+        This function calculates the speed over ground (COG) given a series of longitude,
+        latitude, and time intervals.
+        """
         self.cog = []
 
         for i in range(1, len(self.lon)):
@@ -124,7 +143,19 @@ class ShipTrack:
 
         return self.cog
 
-    def calculate_cog_rate(self):
+    def calculate_cog_rate(self) -> np.ndarray:
+        """
+        Calculate the course over ground (COG) rate.
+
+        Returns
+        -------
+        self.cog_rate
+            An array representing the course over ground rate.
+
+        Notes
+        -----
+        The backward difference is used to calculate the COG rate.
+        """
         if self.cog is None:
             self.calculate_cog()
 
@@ -143,7 +174,7 @@ class ShipTrack:
 
         Returns
         -------
-        z
+        self.z
             The measurement matrix.
         """
         if self.sog is None:
@@ -153,6 +184,6 @@ class ShipTrack:
             self.calculate_cog()
 
         # z = np.vstack((self.lon, self.lat, self.sog, self.cog))
-        z = np.vstack((self.lon, self.lat, self.sog, self.cog))
+        self.z = np.vstack((self.lon, self.lat, self.sog, self.cog))
 
-        return z
+        return self.z
