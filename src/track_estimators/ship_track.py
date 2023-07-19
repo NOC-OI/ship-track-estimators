@@ -5,6 +5,31 @@ from .utils import haversine_formula, heading
 
 
 class ShipTrack:
+    """
+    ShipTrack class representing the data for a single ship track.
+
+    Attributes
+    ----------
+    lat
+        A list or array of floats representing the latitude.
+    lon
+        A list or array of floats representing the longitude.
+    cog
+        A list or array of floats representing the course over ground.
+    sog
+        A list or array of floats representing the speed over ground.
+    dt
+        A list or array of floats representing the time difference between measurements.
+    df
+        The dataframe containing the ship track data.
+    sog_rate
+        A list or array of floats representing the speed over ground rate.
+    cog_rate
+        A list or array of floats representing the course over ground rate.
+    z
+        A list or array of floats representing the measurement.
+    """
+
     def __init__(self, csv_file: str | None = None) -> None:
         self.lat = None
         self.lon = None
@@ -26,6 +51,21 @@ class ShipTrack:
         self.z = self.get_measurements()
 
     def read_csv(self, csv_file: str, ship_id: str | None = None) -> pd.DataFrame:
+        """
+        Read a csv file containing ship track data.
+
+        Parameters
+        ----------
+        csv_file
+            The path to the csv file.
+        ship_id
+            The id of the ship.
+
+        Returns
+        -------
+        self.df
+            The dataframe containing the ship track data.
+        """
         # Read the csv file
         self.df = pd.read_csv(csv_file)
 
@@ -103,7 +143,7 @@ class ShipTrack:
 
         Notes
         -----
-        The backward difference is used to calculate the SOG rate.
+        The backward difference formula is used to calculate the SOG rate.
         """
         if self.sog is None:
             self.calculate_sog()
