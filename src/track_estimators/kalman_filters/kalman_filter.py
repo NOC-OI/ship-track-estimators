@@ -4,9 +4,19 @@ from ..ship_track import ShipTrack
 
 
 class KalmanFilterBase:
-    """Kalman filter base class."""
+    """
+    Kalman filter base class.
+
+    Attributes
+    ----------
+    time: float
+        Current time.
+    predictions: list
+        Kalman filter predictions.
+    """
 
     def __init__(self, *args, **kwargs):
+        """Initialise the Kalman filter base class."""
         self.time = 0
         self.predictions = []
 
@@ -37,6 +47,9 @@ class KalmanFilterBase:
 
         # Save the initial state
         self.predictions.append(self.x)
+        self.update(ship_track.z[:, major_index])
+
+        estimate_variance = []
 
         for step in range(nsteps):
             # Predict the next state
@@ -57,8 +70,9 @@ class KalmanFilterBase:
 
             # Save the predictions
             self.predictions.append(self.x)
+            estimate_variance.append(np.diag(self.P))
 
-        return self.predictions
+        return self.predictions, estimate_variance
 
     def predict(self, *args, **kwargs):
         """Predict the state."""
