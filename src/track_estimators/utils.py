@@ -76,3 +76,28 @@ def heading(lon1, lat1, lon2, lat2):
     heading = (heading + 360) % 360
 
     return heading
+
+
+def smooth(y: np.ndarray, box_pts: int) -> np.ndarray:
+    """
+    Smooth the input array by applying a moving average filter.
+
+    Parameters
+    ----------
+    y
+        The input array to be smoothed.
+    box_pts
+        The number of points to use for the moving average.
+
+    Returns
+    -------
+    y_smooth
+        The smoothed array.
+    """
+    # Create a box filter with ones / box_pts of size box_pts
+    box = np.ones(box_pts) / box_pts
+    # Apply the box filter to the input array using convolution
+    y_smooth = np.convolve(y, box, mode="same")
+    # Return the smoothed array
+
+    return y_smooth
