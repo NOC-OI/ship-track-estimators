@@ -25,9 +25,9 @@ def haversine_formula(lon1: float, lat1: float, lon2: float, lat2: float) -> flo
 
     References
     ----------
-    - https://www.movable-type.co.uk/scripts/latlong.html
-    - https://en.wikipedia.org/wiki/Haversine_formula
-    - https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+    1. https://www.movable-type.co.uk/scripts/latlong.html
+    2. https://en.wikipedia.org/wiki/Haversine_formula
+    3. https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
     """
     # Convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
