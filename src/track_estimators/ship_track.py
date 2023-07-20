@@ -40,17 +40,29 @@ class ShipTrack:
         # Pandas DataFrame
         self.df = None
 
+        # Rates
+        self.sog_rate = None
+        self.cog_rate = None
+        self.z = None
+
         if csv_file is not None:
+            # Read the csv file
             self.read_csv(csv_file=csv_file)
 
-        # Rates
-        self.sog_rate = self.calculate_sog_rate()
-        self.cog_rate = self.calculate_cog_rate()
+            # Rates
+            self.sog_rate = self.calculate_sog_rate()
+            self.cog_rate = self.calculate_cog_rate()
 
-        # Measurements
-        self.z = self.get_measurements()
+            # Measurements
+            self.z = self.get_measurements()
 
-    def read_csv(self, csv_file: str, ship_id: str | None = None) -> pd.DataFrame:
+    def read_csv(
+        self,
+        csv_file: str,
+        ship_id: str | None = None,
+        lat_col: str = "lat",
+        lon_col: str = "lon",
+    ) -> pd.DataFrame:
         """
         Read a csv file containing ship track data.
 
@@ -60,6 +72,10 @@ class ShipTrack:
             The path to the csv file.
         ship_id
             The id of the ship.
+        lat_col
+            The name of the column containing the latitude.
+        lon_col
+            The name of the column containing the longitude.
 
         Returns
         -------
@@ -98,8 +114,8 @@ class ShipTrack:
         self.df = self.df.sort_values(by="date")
 
         # Extract lat, lon
-        self.lat = pd.to_numeric(self.df.lat).values
-        self.lon = pd.to_numeric(self.df.lon).values
+        self.lat = pd.to_numeric(self.df[lat_col]).values
+        self.lon = pd.to_numeric(self.df[lon_col]).values
 
         return self.lat, self.lon, self.dt
 
