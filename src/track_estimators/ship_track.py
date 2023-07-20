@@ -62,6 +62,7 @@ class ShipTrack:
         ship_id: str | None = None,
         lat_col: str = "lat",
         lon_col: str = "lon",
+        reverse: bool = False,
     ) -> pd.DataFrame:
         """
         Read a csv file containing ship track data.
@@ -76,6 +77,8 @@ class ShipTrack:
             The name of the column containing the latitude.
         lon_col
             The name of the column containing the longitude.
+        reverse
+            Whether to reverse the order of measurements.
 
         Returns
         -------
@@ -116,6 +119,12 @@ class ShipTrack:
         # Extract lat, lon
         self.lat = pd.to_numeric(self.df[lat_col]).values
         self.lon = pd.to_numeric(self.df[lon_col]).values
+
+        if reverse:
+            # Reverse the order of the lat, lon, dts values
+            self.dts = self.dts[::-1]
+            self.lat = self.lat[::-1]
+            self.lon = self.lon[::-1]
 
         return self.lat, self.lon, self.dt
 
