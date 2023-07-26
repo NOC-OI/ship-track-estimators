@@ -151,7 +151,7 @@ class ShipTrack:
             self.sog.append(dist / self.dts[i - 1])
 
         # Assume stationary trajectory from the end point onwards
-        self.sog.append(0)
+        self.sog.append(self.sog[-1])
 
         self.sog = np.asarray(self.sog)
 
@@ -174,6 +174,7 @@ class ShipTrack:
             self.calculate_sog()
 
         self.sog_rate = []
+        self.sog_rate.append(0)
 
         for i in range(1, len(self.sog)):
             self.sog_rate.append((self.sog[i] - self.sog[i - 1]) / self.dts[i - 1])
@@ -203,7 +204,7 @@ class ShipTrack:
             self.cog.append(cog)
 
         # Assume stationary trajectory from the end point onwards
-        self.cog.append(0.0)
+        self.cog.append(self.cog[-1])
         self.cog = np.asarray(self.cog)
 
         return self.cog
@@ -225,6 +226,7 @@ class ShipTrack:
             self.calculate_cog()
 
         self.cog_rate = []
+        self.cog_rate.append(0)
 
         for i in range(1, len(self.cog)):
             self.cog_rate.append((self.cog[i] - self.cog[i - 1]) / self.dts[i - 1])
