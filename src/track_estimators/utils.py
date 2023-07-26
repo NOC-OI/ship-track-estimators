@@ -1,6 +1,55 @@
 import numpy as np
+from geographiclib.geodesic import Geodesic
 
 from .constants import EARTH_RADIUS
+
+
+def geographiclib_distance(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
+    """
+    Calculate the distance between two points using the geographiclib library.
+
+    Parameters
+    ----------
+    lon1
+        The longitude of the first point.
+    lat1
+        The latitude of the first point.
+    lon2
+        The longitude of the second point.
+    lat2
+        The latitude of the second point.
+
+    Returns
+    -------
+    dist
+        The distance between the two points in kilometers.
+    """
+    res = Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2)
+    return res["s12"]
+
+
+def geographiclib_heading(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
+    """
+    Calculate the heading between two points using the geographiclib library.
+
+    Parameters
+    ----------
+    lon1
+        The longitude of the first point.
+    lat1
+        The latitude of the first point.
+    lon2
+        The longitude of the second point.
+    lat2
+        The latitude of the second point.
+
+    Returns
+    -------
+    heading
+        The heading between the two points.
+    """
+    res = Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2)
+    return res["azi1"]
 
 
 def haversine_formula(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
