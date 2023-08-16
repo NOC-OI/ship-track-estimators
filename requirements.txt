@@ -2,3 +2,5 @@ pandas>=2.03
 numpy>=1.25.2
 scipy>=1.11.1
 geographiclib>=2.0
+matplotlib>=3.7.2
+cartopy>=0.22.0
