@@ -4,7 +4,7 @@ Python library that implements an Unscented Kalman Filter with geodetic dynamics
 
 ## Conda environment
 
-To utilize this package, it should be installed within a dedicated Conda environment. You can create this environment using the following command:
+To utilise this package, it should be installed within a dedicated Conda environment. You can create this environment using the following command:
 
 ```
 conda env create -n shiptrack-estimators -f environment.yml python=3.10
