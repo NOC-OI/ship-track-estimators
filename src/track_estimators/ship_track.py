@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 import pandas as pd
 
@@ -7,6 +9,25 @@ from .utils import haversine_formula, heading
 class ShipTrack:
     """
     ShipTrack class representing the data for a single ship track.
+
+    Parameters
+    ----------
+    csv_file
+        Name of csv file.
+    ship_id
+        The id of the ship.
+    estimate_cog
+        Whether to estimate the course over ground between successive measurements.
+    estimate_sog
+        Whether to estimate the speed over ground between successive measurements.
+    estimate_cog_rate
+        Whether to estimate the course over ground rate using numerical derivatives upon initialisation.
+    estimate_sog_rate
+        Whether to estimate the speed over ground rate using numerical derivatives upon initialisation.
+    calc_distance_func
+        A function to calculate the distance between two points.
+    calc_heading_func
+        A function to calculate the heading between two points.
 
     Attributes
     ----------
@@ -18,8 +39,10 @@ class ShipTrack:
         A list or array of floats representing the course over ground.
     sog
         A list or array of floats representing the speed over ground.
-    dt
+    dts
         A list or array of floats representing the time difference between measurements.
+    dates
+        A list or array of datetime objects representing the dates of the measurements.
     df
         The dataframe containing the ship track data.
     sog_rate
@@ -28,14 +51,28 @@ class ShipTrack:
         A list or array of floats representing the course over ground rate.
     z
         A list or array of floats representing the measurement.
+    calc_distance_func
+        A function to calculate the distance between two points.
+    calc_heading_func
+        A function to calculate the heading between two points.
     """
 
-    def __init__(self, csv_file: str | None = None) -> None:
+    def __init__(
+        self,
+        csv_file: str | None = None,
+        estimate_cog: bool = False,
+        estimate_sog: bool = False,
+        estimate_sog_rate: bool = False,
+        estimate_cog_rate: bool = False,
+        calc_distance_func: Callable = haversine_formula,
+        calc_heading_func: Callable = heading,
+    ) -> None:
         self.lat = None
         self.lon = None
         self.cog = None
         self.sog = None
-        self.dt = None
+        self.dts = None
+        self.dates = None
 
         # Pandas DataFrame
         self.df = None
@@ -45,13 +82,24 @@ class ShipTrack:
         self.cog_rate = None
         self.z = None
 
+        # Heading and distance functions
+        self.calc_distance_func = calc_distance_func
+        self.calc_heading_func = calc_heading_func
+
         if csv_file is not None:
             # Read the csv file
             self.read_csv(csv_file=csv_file)
 
-            # Rates
-            self.sog_rate = self.calculate_sog_rate()
-            self.cog_rate = self.calculate_cog_rate()
+            # Estimate sog and cog and respective rates
+            if estimate_sog_rate:
+                self.calculate_sog_rate()
+            elif estimate_sog:
+                self.calculate_sog()
+
+            if estimate_cog_rate:
+                self.calculate_cog_rate()
+            elif estimate_cog:
+                self.calculate_cog()
 
             # Measurements
             self.z = self.get_measurements()
@@ -60,6 +108,7 @@ class ShipTrack:
         self,
         csv_file: str,
         ship_id: str | None = None,
+        id_col: str = "id",
         lat_col: str = "lat",
         lon_col: str = "lon",
         reverse: bool = False,
@@ -73,6 +122,8 @@ class ShipTrack:
             The path to the csv file.
         ship_id
             The id of the ship.
+        id_col
+            The name of the column containing the ship id.
         lat_col
             The name of the column containing the latitude.
         lon_col
@@ -90,8 +141,8 @@ class ShipTrack:
 
         # Get the ship course and sort by date
         if ship_id is not None:
-            self.df = self.df.loc[self.df["id"] == ship_id]
-
+            self.df = self.df.loc[self.df[id_col] == ship_id]
+        print(self.df)
         # Handle time
         # "yr","mo","dy","hr",
         # Datetype format: 2005-02-25T03:30'
@@ -105,10 +156,11 @@ class ShipTrack:
         self.df["date"] += "T" + self.df["hr"].astype(str).str.zfill(2) + ":00:00"
 
         # Create deltatimes
-        dates = pd.to_datetime(self.df.date)
+        self.dates = pd.to_datetime(self.df.date).to_list()
+
         self.dts = []
-        for i in range(len(dates) - 1):
-            dt = pd.Timedelta(dates[i + 1] - dates[i]).total_seconds()
+        for i in range(len(self.dates) - 1):
+            dt = pd.Timedelta(self.dates[i + 1] - self.dates[i]).total_seconds()
             self.dts.append(dt / 3600.0)  # seconds to hours
 
         self.dts = np.asarray(self.dts)
@@ -126,7 +178,7 @@ class ShipTrack:
             self.lat = self.lat[::-1]
             self.lon = self.lon[::-1]
 
-        return self.lat, self.lon, self.dt
+        return self.lat, self.lon, self.dts
 
     def calculate_sog(self) -> np.ndarray:
         """
@@ -145,7 +197,7 @@ class ShipTrack:
         self.sog = []
 
         for i in range(1, len(self.lon)):
-            dist = haversine_formula(
+            dist = self.calc_distance_func(
                 self.lon[i - 1], self.lat[i - 1], self.lon[i], self.lat[i]
             )
             self.sog.append(dist / self.dts[i - 1])
@@ -200,7 +252,9 @@ class ShipTrack:
         self.cog = []
 
         for i in range(1, len(self.lon)):
-            cog = heading(self.lon[i - 1], self.lat[i - 1], self.lon[i], self.lat[i])
+            cog = self.calc_heading_func(
+                self.lon[i - 1], self.lat[i - 1], self.lon[i], self.lat[i]
+            )
             self.cog.append(cog)
 
         # Assume stationary trajectory from the end point onwards
@@ -235,22 +289,90 @@ class ShipTrack:
 
         return self.cog_rate
 
-    def get_measurements(self) -> np.ndarray:
+    def get_measurements(
+        self, include_sog: bool = False, include_cog: bool = False
+    ) -> np.ndarray:
         """
         Get the measurement matrix z.
+
+        Parameters
+        ----------
+        include_sog
+            Whether to estimate the speed over ground and include it in the measurement matrix.
+        include_cog
+            Whether to estimate the course over ground and include it in the measurement matrix.
 
         Returns
         -------
         self.z
             The measurement matrix.
         """
-        if self.sog is None:
-            self.calculate_sog()
+        self.z = np.vstack((self.lon, self.lat))
 
-        if self.cog is None:
-            self.calculate_cog()
+        if include_sog:
+            if self.sog is None:
+                self.calculate_sog()
 
-        # z = np.vstack((self.lon, self.lat, self.sog, self.cog))
-        self.z = np.vstack((self.lon, self.lat, self.sog, self.cog))
+            self.z = np.vstack((self.z, self.sog))
+
+        if include_cog:
+            if self.cog is None:
+                self.calculate_cog()
+
+            self.z = np.vstack((self.z, self.cog))
 
         return self.z
+
+    def plot_trajectory(
+        self,
+        figsize: tuple = (20, 15),
+        scatter_kwargs: dict = {"s": 10, "color": "red"},
+        savefig: str | None = None,
+        show: bool = True,
+    ) -> None:
+        """
+        Plot the trajectory.
+
+        Parameters
+        ----------
+        figsize
+            The size of the figure.
+        scatter_kwargs
+            Keyword arguments for the scatter plot.
+        savefig
+            The path to save the figure. If None, no figure is saved.
+        show
+            Whether to show the figure.
+        """
+        import cartopy.crs as ccrs
+        import matplotlib.pyplot as plt
+
+        assert self.lat is not None, "Latitude is not set."
+        assert self.lon is not None, "Longitude is not set."
+
+        fig, ax = plt.subplots(
+            nrows=1,
+            ncols=1,
+            subplot_kw={"projection": ccrs.PlateCarree()},
+            figsize=figsize,
+        )
+        ax.stock_img()
+        ax.coastlines()
+        ax.gridlines(
+            crs=ccrs.PlateCarree(),
+            draw_labels=True,
+            linewidth=0.6,
+            color="gray",
+            alpha=0.5,
+            linestyle="-.",
+        )
+        # Downsampled trajectory
+        ax.scatter(self.lon, self.lat, transform=ccrs.PlateCarree(), **scatter_kwargs)
+
+        if savefig:
+            plt.savefig(savefig, bbox_inches="tight", dpi=300)
+
+        if show:
+            plt.show()
+
+        return fig, ax
