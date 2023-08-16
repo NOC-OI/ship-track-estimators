@@ -1,0 +1,9 @@
+channels:
+- conda-forge
+- nodefaults
+dependencies:
+- pip
+- numpy
+- scipy
+- pandas
+- geographiclib
