@@ -142,7 +142,7 @@ class ShipTrack:
         # Get the ship course and sort by date
         if ship_id is not None:
             self.df = self.df.loc[self.df[id_col] == ship_id]
-        print(self.df)
+
         # Handle time
         # "yr","mo","dy","hr",
         # Datetype format: 2005-02-25T03:30'
