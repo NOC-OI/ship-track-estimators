@@ -23,9 +23,14 @@ def geographiclib_distance(lon1: float, lat1: float, lon2: float, lat2: float) -
     -------
     dist
         The distance between the two points in kilometers.
+
+    References
+    ----------
+    1. https://geographiclib.sourceforge.io/html/python/geodesics.html#introduction
     """
     res = Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2)
-    return res["s12"]
+    dist = res["s12"] * 1e-3  # convert from meters to kilometers
+    return dist
 
 
 def geographiclib_heading(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
@@ -47,9 +52,16 @@ def geographiclib_heading(lon1: float, lat1: float, lon2: float, lat2: float) ->
     -------
     heading
         The heading between the two points.
+
+    References
+    ----------
+    1. https://geographiclib.sourceforge.io/html/python/geodesics.html#introduction
     """
     res = Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2)
-    return res["azi1"]
+    heading = res["azi1"]
+    heading = (heading + 360) % 360
+
+    return heading
 
 
 def haversine_formula(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
