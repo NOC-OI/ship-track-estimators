@@ -47,9 +47,9 @@ track_estimator -i matrices.json -o trial -t data/historical_ships/historical_sh
 - `-lat` or `--latitude-id`: Name of the latitude column (mandatory)
 - `-lon` or `--longitude-id`: Name of the longitude column (mandatory)
 - `-lat` or `--latitude-id`: Name of the latitude column (mandatory)
-- `-ic` or `--id-col`:Name of the ship ID column (mandatory)
+- `-ic` or `--id-col`: Name of the ship ID column (mandatory)
 
-#### Example of matrices.json
+#### Example of `matrices.json`
 
 ```json
 {
