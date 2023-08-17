@@ -38,6 +38,9 @@ tests = [
   "pytest-cov"
 ]
 
+[project.scripts]
+track_estimator = "track_estimators.cli.main_cli:track_estimator"
+
 [tool.coverage.run]
 branch = true
 
