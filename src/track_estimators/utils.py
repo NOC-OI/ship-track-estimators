@@ -67,7 +67,6 @@ def geographiclib_heading(lon1: float, lat1: float, lon2: float, lat2: float) ->
     else:
         res = Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2)
         heading = res["azi1"]
-        print(heading, lat1, lon1, lat2, lon2)
         heading = (heading + 360) % 360
 
     return heading
