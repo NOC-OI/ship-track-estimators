@@ -3,7 +3,7 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 
-from .utils import haversine_formula, heading
+from .utils import geographiclib_distance, geographiclib_heading
 
 
 class ShipTrack:
@@ -64,8 +64,8 @@ class ShipTrack:
         estimate_sog: bool = False,
         estimate_sog_rate: bool = False,
         estimate_cog_rate: bool = False,
-        calc_distance_func: Callable = haversine_formula,
-        calc_heading_func: Callable = heading,
+        calc_distance_func: Callable = geographiclib_distance,
+        calc_heading_func: Callable = geographiclib_heading,
     ) -> None:
         self.lat = None
         self.lon = None
