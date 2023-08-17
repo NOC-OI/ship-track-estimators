@@ -143,6 +143,9 @@ class ShipTrack:
         if ship_id is not None:
             self.df = self.df.loc[self.df[id_col] == ship_id]
 
+        # Sort index
+        self.df.sort_index(axis=0, inplace=True, ignore_index=True)
+
         # Handle time
         # "yr","mo","dy","hr",
         # Datetype format: 2005-02-25T03:30'
@@ -166,8 +169,7 @@ class ShipTrack:
         self.dts = np.asarray(self.dts)
 
         # Sort values by date
-        self.df = self.df.sort_values(by="date")
-
+        # self.df = self.df.sort_values(by="date")
         # Extract lat, lon
         self.lat = pd.to_numeric(self.df[lat_col]).values
         self.lon = pd.to_numeric(self.df[lon_col]).values
