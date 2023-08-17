@@ -35,7 +35,7 @@ Numerous examples of Python scripts explaining how to use this package can be fo
 The CLI provided by this package allows you to execute the Unscented Kalman Filter; however, it offers less flexibility compared to using the Python scripts. To run the track estimator in the terminal, type, e.g., the following command:
 
 ```bash
-track_estimator -i matrices.json -o trial -t data/historical_ships/historical_ship_data.csv -s 01203823 -ic "primary.id" -lat "lat" -lon "lon"
+track_estimator -i matrices.json -o trial -t data/historical_ships/historical_ship_data.csv -s 01203792 -ic "primary.id" -lat "lat" -lon "lon"
 ```
 
 #### Flags description
@@ -55,8 +55,8 @@ track_estimator -i matrices.json -o trial -t data/historical_ships/historical_sh
 {
   "dim": 4,
   "H": [1, 1, 0, 0],
-  "R": [0.01, 0.01, 0, 0],
-  "Q": [1e-4, 1e-4, 1e-4, 1e-4],
+  "R": [0.25, 0.25, 0, 0],
+  "Q": [1e-4, 1e-4, 1e-6, 1e-6],
   "P": [1.0, 1.0, 1.0, 1.0],
   "dt": 1,
   "nsteps": 500
