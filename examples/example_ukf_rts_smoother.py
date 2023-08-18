@@ -15,7 +15,7 @@ reversed = False
 ship_track = ShipTrack()
 ship_track.read_csv(
     csv_file="data/historical_ships/historical_ship_data.csv",
-    ship_id="01206012",
+    ship_id="01203792",
     id_col="primary.id",
     lat_col="lat",
     lon_col="lon2",
@@ -35,7 +35,7 @@ H = np.diag([1, 1, 0, 0])
 R = np.diag([0.25, 0.25, 0, 0]) * 0.1
 
 # Process noise covariance
-Q = np.diag([1e-4, 1e-4, 1e-6, 1e-6])
+Q = np.diag([1e-4, 1e-4, 1e-6, 1e-6]) * 10
 
 # Estimate covariance matrix
 P = np.diag([1.0, 1.0, 1.0, 1.0])
@@ -76,6 +76,9 @@ predictions_smoothed, estimate_vars_smoothed = ukf.run_rts_smoother(
 #                       ANALYSE THE RESULTS                      #
 #                                                                #
 # -------------------------------------------------------------- #
+s = 30
+alpha = 0.6
+
 fig, ax = plt.subplots(
     nrows=1,
     ncols=1,
@@ -97,9 +100,9 @@ ax.scatter(
     predictions[:, 1],
     transform=ccrs.PlateCarree(),
     marker="*",
-    s=50,
-    label="Kalman filter",
-    alpha=0.6,
+    s=s,
+    label="Kalman filter - Forward",
+    alpha=alpha,
 )
 
 ax.scatter(
@@ -107,9 +110,9 @@ ax.scatter(
     predictions_smoothed[:, 1],
     transform=ccrs.PlateCarree(),
     marker="o",
-    s=50,
+    s=s,
     label="Kalman filter - RTS",
-    alpha=0.6,
+    alpha=alpha,
 )
 
 ax.scatter(
@@ -117,9 +120,9 @@ ax.scatter(
     z[1, :],
     transform=ccrs.PlateCarree(),
     marker="^",
-    s=50,
-    label="Original",
-    alpha=0.8,
+    s=s,
+    label="Original Track",
+    alpha=alpha,
 )
 
 plt.xlim(z[0, :].min() - 5, z[0, :].max() + 5)
