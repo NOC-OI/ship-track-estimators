@@ -270,8 +270,12 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         """
         nsteps = fwd_means.shape[0]
 
-        ship_track.sog_rate = np.repeat(ship_track.sog_rate, 4)
-        ship_track.cog_rate = np.repeat(ship_track.cog_rate, 4)
+        ship_track.sog_rate = np.repeat(
+            ship_track.sog_rate, int(nsteps / len(ship_track.dts))
+        )
+        ship_track.cog_rate = np.repeat(
+            ship_track.cog_rate, int(nsteps / len(ship_track.dts))
+        )
 
         # Copy the state estimates and covariances
         x_fwd, P_fwd = fwd_means.copy(), fwd_vars.copy()
