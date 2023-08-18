@@ -4,21 +4,28 @@ from ..constants import EARTH_RADIUS
 
 
 def geodetic_dynamics(
-    x: np.ndarray, dt: float, sog_rate: float = 0.0, cog_rate: float = 0.0
+    x: np.ndarray,
+    c: np.ndarray,
+    dt: float,
+    sog_rate: float = 0.0,
+    cog_rate: float = 0.0,
 ):
     """
     Update step of the geodetic process model.
 
     Parameters
     ----------
-    x : numpy.ndarray, shape=(4,)
-        State vector representing [longitude, latitude, velocity, heading].
+    x
+        State vector typically but not necessarily
+          representing [longitude, latitude, velocity, heading].
         Longitide, latitude and heading are assumed to be in degrees.
-    dt : float
+    c
+        Control input vector.
+    dt
         Time step.
-    sog_rate : float, optional
+    sog_rate
         Speed over ground rate, by default 0.0.
-    cog_rate : float, optional
+    cog_rate
         Course over ground rate, by default 0.0.
 
     Returns
@@ -37,10 +44,17 @@ def geodetic_dynamics(
     https://doi.org/10.1016/j.apor.2022.103205.
     """
     # Latitude, longitude and heading are converted to radians
-    lon = np.radians(x[0])
-    lat = np.radians(x[1])
-    u = x[2]
-    alpha = np.radians(x[3])
+    if c is None:
+        c = np.asarray([])
+
+    # Concatenate the state and control input vector
+    xconcat = np.concatenate((x, c))
+
+    # Extract lat, lon, sog, and cog
+    lon = np.radians(xconcat[0])
+    lat = np.radians(xconcat[1])
+    u = xconcat[2]
+    alpha = np.radians(xconcat[3])
 
     # Precompute sin and cos of udt_R
     udt_R = u * dt / EARTH_RADIUS
@@ -63,8 +77,9 @@ def geodetic_dynamics(
     # Eq. (35), alpha
     transformed_alpha = np.degrees(alpha) + cog_rate * dt
 
+    # Create the final state vector
     transformed_x = np.array(
         [transformed_lon, transformed_lat, transformed_u, transformed_alpha]
     )
 
-    return transformed_x
+    return transformed_x[: x.shape[0]]

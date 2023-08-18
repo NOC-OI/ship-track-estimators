@@ -25,7 +25,13 @@ class KalmanFilterBase:
         self.c = None
 
         # Kalman filter predictions
-        self.predictions = []
+        self.means = []
+        self.covariances = []
+        self.means_smoothed = []
+        self.covariances_smoothed = []
+
+        self.dt = None
+        self.nsteps = None
 
     def run(
         self,
@@ -49,29 +55,36 @@ class KalmanFilterBase:
 
         Returns
         -------
-        predictions
-            A list of predictions.
+        means, covariances
+            The mean and covariance of the predicted state.
         """
         if isinstance(dt, (list, np.ndarray)):
             assert len(dt) == nsteps, "dt must be the same length as nsteps"
         else:
             dt = np.ones(nsteps) * dt
 
+        self.dt = dt
+        self.nsteps = nsteps
+
+        # Initialize the update index
+        update_index = 0
+
         # Calculate the cumulative time
         time_cumsum = np.cumsum(ship_track.dts)
 
-        update_index = 0
-
         # Save the initial state
-        self.predictions.append(self.x)
-        # self.update(ship_track.z[:, update_index])
+        self.means.append(self.x)
+        self.covariances.append(self.P)
 
-        estimate_variance = []
+        # Perform the update step to incorporate any
+        # available initial measurements or information
+        self.update(ship_track.z[:, update_index].copy())
 
         self.c = np.asarray(
             [ship_track.sog[update_index], ship_track.cog[update_index]]
         )
 
+        # Run the Kalman filter
         for step, dt in enumerate(dt):
             # Predict the next state
             self.predict(
@@ -92,16 +105,36 @@ class KalmanFilterBase:
                     [ship_track.sog[update_index], ship_track.cog[update_index]]
                 )
 
-                self.update(ship_track.z[:, update_index])
+                self.update(ship_track.z[:, update_index].copy())
 
-            # Save the predictions
-            self.predictions.append(self.x)
-            estimate_variance.append(np.diag(self.P))
+            # Store the predictions
+            self.means.append(self.x)
+            self.covariances.append(self.P)
 
         return (
-            np.asarray(self.predictions).squeeze(),
-            np.asarray(estimate_variance).squeeze(),
+            np.asarray(self.means).squeeze(),
+            np.asarray(self.covariances).squeeze(),
         )
+
+    def run_rts_smoother(self, ship_track: ShipTrack) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Run the Rauch-Tung-Striebel (RTS) smoother.
+
+        Parameters
+        ----------
+        ship_track
+            The ship's track data, given as a ShipTrack object.
+
+        Returns
+        -------
+        x, p
+            Smoothed state estimate and covariance.
+        """
+        x, P = self.rts_step(
+            np.asarray(self.means), np.asarray(self.covariances), ship_track
+        )
+
+        return x, P
 
     def predict(self, *args, **kwargs):
         """Predict the state."""

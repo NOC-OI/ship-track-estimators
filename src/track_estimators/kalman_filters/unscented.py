@@ -11,6 +11,7 @@ from typing import Callable
 
 import numpy as np
 import scipy.linalg
+from track_estimators.ship_track import ShipTrack
 
 from .kalman_filter import KalmanFilterBase
 
@@ -24,6 +25,7 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         P=None,
         x0=None,
         non_linear_process: Callable | None = None,
+        measurement_model: Callable | None = None,
     ):
         """
         Initialize the Unscented Kalman Filter.
@@ -42,6 +44,8 @@ class UnscentedKalmanFilter(KalmanFilterBase):
             Initial state estimate. Defaults to zero matrix
         non_linear_process
             Non-linear process model.
+        measurement_model
+            Measurement model.
         """
         super().__init__()
 
@@ -60,12 +64,18 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         # Sigma points and weights
         self.n_sigma_points = 2 * self.n + 1
         self.sigma_points = np.zeros((self.n, self.n_sigma_points))
+        self.sigma_points_orig = None
         self.weights = np.zeros((self.n_sigma_points, self.n_sigma_points))
 
         # Non-linear process model
         self.non_linear_process = non_linear_process
 
-    def compute_sigma_points(self) -> np.ndarray:
+        # Measurement model
+        self.measurement_model = measurement_model
+
+    def compute_sigma_points(
+        self, x: np.ndarray | None = None, P: np.ndarray | None = None
+    ) -> np.ndarray:
         """
         Compute the sigma points the UKF using the prior state estimate and covariance matrix.
 
@@ -74,17 +84,25 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.sigma_points
             Sigma points of the unscented kalman filter.
         """
+        if x is None:
+            assert self.x is not None, "Set proper initial state estimate."
+            x = self.x
+
+        if P is None:
+            assert self.P is not None, "Set proper initial state covariance matrix."
+            P = self.P
+
         term = self.n / (1 - self.weights[0, 0])
-        term = term * self.P
+        term = term * P
         term = scipy.linalg.sqrtm(term)
 
         # Eq. (4a)
-        self.sigma_points[:, 0] = self.x[:, 0]
+        self.sigma_points[:, 0] = x[:, 0]
 
         # Eq. (4c, 4d)
         for i in range(self.n):
-            self.sigma_points[:, i + 1] = self.x[:, 0] + term[:, i]
-            self.sigma_points[:, i + 1 + self.n] = self.x[:, 0] - term[:, i]
+            self.sigma_points[:, i + 1] = x[:, 0] + term[:, i]
+            self.sigma_points[:, i + 1 + self.n] = x[:, 0] - term[:, i]
 
         return self.sigma_points
 
@@ -120,6 +138,7 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.weights[0, 0] = weight0
 
         logging.debug("Weights\n\n", self.weights)
+
         return self.weights
 
     def predict(
@@ -162,6 +181,7 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         # Eq. (4)
         self.compute_weights()
         self.sigma_points = self.compute_sigma_points()
+        self.sigma_points_orig = self.sigma_points.copy()
 
         # 1b. Pass sigma points through the non linear process model
         # Eq. (5)
@@ -175,10 +195,11 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.x = np.sum(np.dot(self.sigma_points, self.weights), axis=1, keepdims=True)
 
         # Eq. (1) process model is affected by additive, zero-mean Gaussian noise
-        gaussian = np.random.normal(
+        process_white_noise = np.random.normal(
             scale=np.sqrt(np.diag(self.Q)), size=(self.n)
         ).reshape(-1, 1)
-        self.x += gaussian
+
+        self.x += process_white_noise
 
         # Eq. (7)
         S = self.sigma_points - self.x
@@ -188,6 +209,12 @@ class UnscentedKalmanFilter(KalmanFilterBase):
     def update(self, z: np.ndarray) -> None:
         # Ensure correct shape of observation vector
         z = z.reshape(-1, 1)
+
+        if self.measurement_model is not None:
+            assert callable(
+                self.measurement_model
+            ), "Measurement model must be callable."
+            z = self.measurement_model(z)
 
         # Add measurement noise
         z += np.random.normal(scale=np.sqrt(np.diag(self.R)), size=(self.n)).reshape(
@@ -206,14 +233,14 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         y = z - np.dot(self.H, self.x)
 
         # Eq. (43)
-        # y[3, 0] = (y[3, 0] + 180.0) % 360 - 180.0
+        y[3, 0] = (y[3, 0] + 180.0) % 360.0 - 180.0
 
         # 2c. Compute the a posteriori state estimate and covariance matrix
         # Eq. (10), update (correct) the state
         self.x = self.x + np.dot(K, y)
 
         # Eq. (44)
-        # self.x[3, 0] = self.x[3, 0] % 360
+        self.x[3, 0] = self.x[3, 0] % 360.0
 
         # Eq. (11), update (correct) the covariance
         identity = np.eye(self.n)
@@ -222,3 +249,85 @@ class UnscentedKalmanFilter(KalmanFilterBase):
             np.dot(identity - np.dot(K, self.H), self.P),
             (identity - np.dot(K, self.H)).T,
         ) + np.dot(np.dot(K, self.R), K.T)
+
+    def rts_step(self, fwd_means, fwd_vars, ship_track: ShipTrack, *args, **kwargs):
+        """
+        Run the unscented Rauch-Tung-Striebel (RTS) smoother.
+
+        Parameters
+        ----------
+        fwd_means
+            Forward state means.
+        fwd_vars
+            Forward state variances.
+        ship_track
+            The ship's track data, given as a ShipTrack object.
+
+        Returns
+        -------
+        x_bwd, P_bwd
+            Smoothed state estimate and covariance.
+        """
+        nsteps = fwd_means.shape[0]
+
+        ship_track.sog_rate = np.repeat(ship_track.sog_rate, 4)
+        ship_track.cog_rate = np.repeat(ship_track.cog_rate, 4)
+
+        # Copy the state estimates and covariances
+        x_fwd, P_fwd = fwd_means.copy(), fwd_vars.copy()
+
+        for step in range(nsteps - 2, -1, -1):
+            # Create sigma points from state estimate
+            self.compute_weights()
+
+            self.sigma_points = self.compute_sigma_points(x_fwd[step], P_fwd[step])
+            self.sigma_points_orig = self.sigma_points.copy()
+
+            # Pass sigma points through the non linear process model
+            for sigmap in range(self.n_sigma_points):
+                self.sigma_points[:, sigmap] = self.non_linear_process(
+                    self.sigma_points[:, sigmap],
+                    c=None,
+                    dt=self.dt[step],
+                    sog_rate=ship_track.sog_rate[step],
+                    cog_rate=ship_track.cog_rate[step],
+                )
+
+            # Compute the backward state estimate and covariance
+            x_bwd = np.sum(
+                np.dot(self.sigma_points, self.weights), axis=1, keepdims=True
+            )
+
+            # Add the white noise
+            process_white_noise = np.random.normal(
+                scale=np.sqrt(np.diag(self.Q)), size=(self.n)
+            ).reshape(-1, 1)
+            x_bwd += process_white_noise
+            S = self.sigma_points - x_fwd[step]
+            P_bwd = np.dot(np.dot(S, self.weights), S.T) + self.Q
+
+            # Compute cross-variance
+            S = self.sigma_points - x_bwd
+            S_orig = self.sigma_points_orig - x_fwd[step]
+            D = np.dot(np.dot(S_orig, self.weights), S.T)
+
+            #  Kalman gain
+            K = np.dot(D, np.linalg.pinv(P_bwd))
+
+            # 2b. Map the state prediction into the measurement space, and compute the residual error
+            # Eq. (9), Innovation
+            y = x_fwd[step + 1] - x_bwd
+
+            # Eq. (43)
+            y[3, 0] = (y[3, 0] + 180.0) % 360.0 - 180.0
+
+            # Smoothed mean
+            x_fwd[step] += np.dot(K, y)
+
+            # Eq. (44)
+            x_fwd[step][3, 0] = x_fwd[step][3, 0] % 360.0
+
+            # Smoothed covariance
+            P_fwd[step] += np.dot(np.dot(K, P_fwd[step + 1] - P_bwd), K.T)
+
+        return x_fwd, P_fwd
