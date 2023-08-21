@@ -11,15 +11,14 @@ from track_estimators.utils import generate_dts
 #                             INPUT                              #
 #                                                                #
 # -------------------------------------------------------------- #
-reversed = False
 ship_track = ShipTrack()
 ship_track.read_csv(
     csv_file="data/historical_ships/historical_ship_data.csv",
-    ship_id="01203792",
-    id_col="primary.id",
+    ship_id="01204106",
+    id_col="id",
     lat_col="lat",
     lon_col="lon2",
-    reverse=reversed,
+    reverse=False,
 )
 
 z = ship_track.get_measurements(include_sog=True, include_cog=True)
@@ -32,10 +31,10 @@ ship_track.calculate_sog_rate()
 H = np.diag([1, 1, 0, 0])
 
 # Measurement Uncertainty
-R = np.diag([0.25, 0.25, 0, 0]) * 0.1
+R = np.diag([0.25, 0.25, 0, 0]) * 0.01
 
 # Process noise covariance
-Q = np.diag([1e-4, 1e-4, 1e-6, 1e-6]) * 10
+Q = np.diag([1e-4, 1e-4, 1e-6, 1e-6]) * 25
 
 # Estimate covariance matrix
 P = np.diag([1.0, 1.0, 1.0, 1.0])
