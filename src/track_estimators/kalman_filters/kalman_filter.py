@@ -134,7 +134,7 @@ class KalmanFilterBase:
             np.asarray(self.means), np.asarray(self.covariances), ship_track
         )
 
-        return x, P
+        return x.squeeze(), P.squeeze()
 
     def predict(self, *args, **kwargs):
         """Predict the state."""
