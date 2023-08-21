@@ -1,0 +1,167 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{xparse}
+
+\begin{document}
+
+\section{Designing the Kalman Filter}
+
+\subsection{Problem Definition}
+\textbf{Goal}: Estimate $x$ and $v$, where $x$ is the position and $v$ is the velocity, given measurements $z = x + \epsilon_R$, $\epsilon_R \sim \mathcal{N}(0, \sigma_R^2)$.
+
+State vector:
+
+\[
+\mathbf{x}_k =
+\begin{bmatrix}
+x_k \\ v_k
+\end{bmatrix}
+\]
+
+Measurement:
+\[
+\mathbf{z}_k =
+\begin{bmatrix}
+z_k
+\end{bmatrix}
+\]
+
+\subsection{Time Evolution}
+
+\begin{equation}
+x_{k+1} = x_k + v_k \cdot \delta t + \frac{1}{2}a \Delta t^2
+\end{equation}
+
+\begin{equation}
+v_{k+1} = v_k + a \Delta t
+\end{equation}
+
+If we did not include acceleration, then the speed would be fixed to a constant, and we would not allow our object to change speed. Let us now write the time evolution in vector form:
+
+\[
+\mathbf{x}_k =
+\begin{bmatrix}
+1 & \Delta t \\
+0 & 1
+\end{bmatrix}
+\mathbf{x}_{k-1}
++
+\begin{bmatrix}
+\frac{1}{2} \Delta t^2 \\
+\Delta t
+\end{bmatrix}
+a
+\]
+
+and now we define $\mathbf{F}$
+
+\[
+\mathbf{F} =
+\begin{bmatrix}
+1 & \Delta t \\
+0 & 1
+\end{bmatrix}
+\]
+
+and $\mathbf{G}$
+
+\[
+\mathbf{G} =
+\begin{bmatrix}
+\frac{1}{2} \Delta t^2 \\
+\Delta t
+\end{bmatrix}
+\]
+
+So that the equations of motion can be written as
+
+\begin{equation}
+\mathbf{x}_{k+1} = \mathbf{F} \mathbf{x}_k + \mathbf{G} \mathbf{u}_k
+\end{equation}
+
+we assume that $a \sim \mathcal{N}(0, \sigma_a^2)$, i.e., that the acceleration is normally distributed. The speed can then change by some noise which corresponds to the acceleration.
+
+\subsection{Incorporate Measurements}
+
+Our measurement, $z = x + \epsilon_R$, $\epsilon_R \sim \mathcal{N}(0, \sigma_R^2)$, in vector form reads
+
+\[
+\mathbf{z}_k =
+\begin{bmatrix}
+1 & 0
+\end{bmatrix}
+mathbf{x}_k + \bm{\epsilon}_k
+\]
+
+where
+
+\[
+\mathbf{H} =
+\begin{bmatrix}
+1 & 0
+\end{bmatrix}
+\]
+
+\subsection{Prediction Step}
+
+In the prediction step, the goal is to propagate the state $\mathbf{x}_k \rightarrow \mathbf{x}_{k+1}$.
+
+If $\mathbf{x}_k$ is a random variable defined as follows:
+
+\begin{equation}
+\mathbf{x}_k \sim \mathcal{N}(\hat{\mathbf{x}}_k, \mathbf{P}_k)
+\end{equation}
+
+Then the Kalman predict equations are
+
+\begin{equation}
+\hat{\mathbf{x}}_{k+1} = \mathbf{F} \hat{\mathbf{x}}_{k}
+\end{equation}
+
+\begin{equation}
+\mathbf{P}_{k+1} = \mathbf{F} \mathbf{P}_k \mathbf{F}^T + \mathbf{G} \sigma_a^2 \mathbf{G}^T
+\end{equation}
+
+\subsection{Measurement Step}
+
+In the measurement step, we incorporate knowledge of $z_k$ into our estimate of the state vector, $\mathbf{x}_k$.
+The update equations are as follows:
+
+First, we compute the innovation and the innovation covariance
+
+\begin{equation}
+\mathbf{y} = \mathbf{z}_k - \mathbf{H}\hat{\mathbf{x}}_k
+\end{equation}
+
+\begin{equation}
+\mathbf{S}_k = \mathbf{H}\mathbf{P}_k\mathbf{H}^T + \mathbf{R}
+\end{equation}
+
+where $\mathbf{R}$ is given by
+
+\[
+\mathbf{R} =
+\begin{bmatrix}
+\sigma_R^2
+\end{bmatrix}
+\]
+
+We also need to compute the Kalman gain
+
+\begin{equation}
+\mathbf{K} = \mathbf{P}\mathbf{H}^T\mathbf{S}_k^{-1}
+\end{equation}
+
+And finally, we update. The new mean, incorporating the measurement, is given by
+
+\begin{equation}
+\hat{\mathbf{x}}_{|z} = \hat{\mathbf{x}}_k + \mathbf{K} \mathbf{y}
+\end{equation}
+
+And the covariance matrix given the measurement is
+
+\begin{equation}
+\mathbf{P}_{|z} = (\mathbf{I} - \mathbf{K}\mathbf{H})\mathbf{P}_k
+\end{equation}
+
+\end{document}
