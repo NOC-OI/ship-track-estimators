@@ -57,7 +57,7 @@ track_estimator -i input.json -o "output" -t ../../data/historical_ships/histori
 {
   "dim": 4,
   "H": [1, 1, 0, 0],
-  "R": [0.25, 0.25, 0, 0],
+  "R": [0.0025, 0.0025, 0, 0],
   "Q": [1e-4, 1e-4, 1e-6, 1e-6],
   "P": [1.0, 1.0, 1.0, 1.0],
   "dt": 1,
