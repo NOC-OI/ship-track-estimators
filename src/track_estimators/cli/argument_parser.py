@@ -68,6 +68,14 @@ def create_parser():
     )
 
     parser.add_argument(
+        "-rts",
+        "--rts-smoother",
+        dest="apply_rts_smoother",
+        action="store_true",
+        help="Apply the Rauch-Tung-Striebel (RTS) smoother",
+    )
+
+    parser.add_argument(
         "-v",
         "--version",
         action="version",

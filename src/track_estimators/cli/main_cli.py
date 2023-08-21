@@ -9,6 +9,7 @@ import numpy as np
 from ..kalman_filters.non_linear_process import geodetic_dynamics
 from ..kalman_filters.unscented import UnscentedKalmanFilter
 from ..ship_track import ShipTrack
+from ..utils import generate_dts
 from .argument_parser import __version__, create_parser
 from .json_loader import load_input_json
 
@@ -94,6 +95,16 @@ def track_estimator():
     x0 = z[:, 0].reshape(-1, 1)
 
     # -------------------------------------------------------------- #
+    #                        Generate dts                            #
+    # -------------------------------------------------------------- #
+    if dt in [-1, 0, None]:
+        dt_array = generate_dts(ship_track.dts, nsteps)
+        nsteps = len(dt_array)
+    else:
+        dt_array = generate_dts(ship_track.dts, 1)
+        nsteps = len(dt_array)
+
+    # -------------------------------------------------------------- #
     #                     Unscented Kalman Filter                    #
     # -------------------------------------------------------------- #
     logger.info("Running the Unscented Kalman Filter...")
@@ -101,15 +112,44 @@ def track_estimator():
         H=H, Q=Q, R=R, P=P, x0=x0, non_linear_process=geodetic_dynamics
     )
 
-    predictions, estimate_vars = ukf.run(nsteps, dt, ship_track)
+    predictions, estimate_vars = ukf.run(nsteps, dt_array, ship_track)
     logger.info("Finished running the Unscented Kalman Filter.")
+
+    # -------------------------------------------------------------- #
+    #                          RTS Smoother                          #
+    # -------------------------------------------------------------- #
+    # Run the RTS smoother
+    if args.apply_rts_smoother:
+        predictions_smoothed, estimate_vars_smoothed = ukf.run_rts_smoother(
+            ship_track=ship_track
+        )
 
     # -------------------------------------------------------------- #
     #                          Write outputs                         #
     # -------------------------------------------------------------- #
     logger.info(f"Writing outputs with prefix '{args.output_prefix}'.")
-    np.savetxt(f"{args.output_prefix}_predictions.txt", np.asarray(predictions))
-    np.savetxt(f"{args.output_prefix}_variances.txt", np.asarray(estimate_vars))
+    np.savetxt(
+        f"{args.output_prefix}_{args.ship_id}_predictions.txt", np.asarray(predictions)
+    )
+    np.savetxt(
+        f"{args.output_prefix}_{args.ship_id}_variances.txt",
+        np.diagonal(np.asarray(estimate_vars), axis1=1, axis2=2),
+    )
+    np.savetxt(f"{args.output_prefix}_{args.ship_id}_dts.txt", np.asarray(dt_array))
+    np.savetxt(
+        f"original_{args.ship_id}_track.txt",
+        np.array((ship_track.lon, ship_track.lat)).T,
+    )
+
+    if args.apply_rts_smoother:
+        np.savetxt(
+            f"{args.output_prefix}_{args.ship_id}_predictions_smoothed.txt",
+            np.asarray(predictions_smoothed),
+        )
+        np.savetxt(
+            f"{args.output_prefix}_{args.ship_id}_variances_smoothed.txt",
+            np.diagonal(np.asarray(estimate_vars_smoothed), axis1=1, axis2=2),
+        )
 
     exit_banner()
 
