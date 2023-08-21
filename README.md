@@ -65,7 +65,7 @@ track_estimator -i matrices.json -o trial -t data/historical_ships/historical_sh
 }
 ```
 
-Here, `dim` represents the dimensions of matrices, `H` is the measurement matrix, `R` is the measurement noise covariance matrix, `Q` the process noise covariance, and `P` is the estimate error covariance matrix. Furthermore, `dt` is the time step (which can be either a constant time step or a list of numbers), and `nsteps` indicates the number of estimation steps to be performed. When `dt=-1, the `nsteps\`\` indicates the number of sub-steps that should be performed within each main time step, as determined by the measurements.
+Here, `dim` represents the dimensions of matrices, `H` is the measurement matrix, `R` is the measurement noise covariance matrix, `Q` the process noise covariance, and `P` is the estimate error covariance matrix. Furthermore, `dt` is the time step (which can be either a constant time step or a list of numbers), and `nsteps` indicates the number of estimation steps to be performed. When `dt` is `-1`, `0` or `null`, the `nsteps` parameter indicates the number of sub-steps that should be performed within each main time step, as determined by the measurements.
 
 ## References
 
