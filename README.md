@@ -36,7 +36,7 @@ Numerous examples of Python scripts explaining how to use this package can be fo
 The CLI provided by this package allows you to execute the Unscented Kalman Filter; however, it offers less flexibility compared to using the Python scripts. To run the track estimator in the terminal, type, e.g., the following command:
 
 ```bash
-track_estimator -i matrices.json -o trial -t data/historical_ships/historical_ship_data.csv -s 01203792 -ic "primary.id" -lat "lat" -lon "lon"
+track_estimator -i input.json -o trial -t data/historical_ships/historical_ship_data.csv -s 01203792 -ic "primary.id" -lat "lat" -lon "lon"
 ```
 
 #### Flags description
@@ -51,7 +51,7 @@ track_estimator -i matrices.json -o trial -t data/historical_ships/historical_sh
 - `-ic` or `--id-col`: Name of the ship ID column (mandatory)
 - `-rts` or `-rts-smoother`: Apply the Rauch-Tung-Striebel (RTS) smoother
 
-#### Example of `matrices.json`
+#### Example of `input.json`
 
 ```json
 {
@@ -65,7 +65,21 @@ track_estimator -i matrices.json -o trial -t data/historical_ships/historical_sh
 }
 ```
 
-Here, `dim` represents the dimensions of matrices, `H` is the measurement matrix, `R` is the measurement noise covariance matrix, `Q` the process noise covariance, and `P` is the estimate error covariance matrix. Furthermore, `dt` is the time step (which can be either a constant time step or a list of numbers), and `nsteps` indicates the number of estimation steps to be performed. When `dt` is `-1`, `0` or `null`, the `nsteps` parameter indicates the number of sub-steps that should be performed within each main time step, as determined by the measurements.
+Here, `dim` represents the dimensions of matrices, `H` is the measurement matrix, `R` is the measurement noise covariance matrix, `Q` the process noise covariance, and `P` is the estimate error covariance matrix. Furthermore, `dt` is the time step (which can be either a constant time step or a list of numbers), and `nsteps` indicates the number of estimation steps to be performed. When `dt` is `-1`, `0` or `null`, the `nsteps` parameter indicates the number of sub-steps that should be performed within each main time step, as determined by the measurements. For example:
+
+```json
+{
+  "dim": 4,
+  "H": [1, 1, 0, 0],
+  "R": [0.001, 0.001, 0, 0],
+  "Q": [1e-2, 1e-2, 1e-4, 1e-4],
+  "P": [1.0, 1.0, 1.0, 1.0],
+  "dt": -1,
+  "nsteps": 2
+}
+```
+
+This configuration will result in performing 2 sub-steps within each main step, with the length of each main step determined by the measurement data.
 
 ## References
 
