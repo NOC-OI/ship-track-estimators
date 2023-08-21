@@ -69,4 +69,5 @@ ax.scatter(
 plt.xlim(original[:, 0].min() - 5, original[:, 0].max() + 5)
 plt.ylim(original[:, 1].min() - 5, original[:, 1].max() + 5)
 plt.legend()
+# plt.savefig("example.png", dpi=300, bbox_inches='tight')
 plt.show()
