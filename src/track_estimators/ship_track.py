@@ -146,6 +146,9 @@ class ShipTrack:
         # Sort index
         self.df.sort_index(axis=0, inplace=True, ignore_index=True)
 
+        if self.df.empty:
+            raise ValueError(f"No data found for ship '{ship_id}' in '{csv_file}'.")
+
         # Handle time
         # "yr","mo","dy","hr",
         # Datetype format: 2005-02-25T03:30'
@@ -173,6 +176,11 @@ class ShipTrack:
         # Extract lat, lon
         self.lat = pd.to_numeric(self.df[lat_col]).values
         self.lon = pd.to_numeric(self.df[lon_col]).values
+
+        # Make sure lat and lon are the same length, and they are not empty
+        assert len(self.lon) > 0, f"Longitude list is empty for column '{lon_col}'."
+        assert len(self.lat) > 0, f"Latitude list is empty for column '{lat_col}'."
+        assert len(self.lat) == len(self.lon)
 
         if reverse:
             # Reverse the order of the lat, lon, dts values
