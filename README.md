@@ -19,7 +19,13 @@ conda activate shiptrack-estimators
 
 ## Install the package
 
-To install this library, execute the following command within the source directory:
+To install this library, begin by cloning this repository:
+
+```bash
+git clone git@github.com:NOC-OI/ship-track-estimators.git
+```
+
+After cloning the repository, navigate to the root directory of the package and execute the following command:
 
 ```bash
 pip install -e .
