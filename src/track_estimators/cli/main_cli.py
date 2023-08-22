@@ -1,4 +1,4 @@
-"""dpypeline command line interface."""
+"""track_estimators command line interface."""
 import logging
 import os
 import sys
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def banner():
-    """Log the dpypeline banner."""
+    """Log the track estimator banner."""
     logger.info(
         r"""
              /|~~~
@@ -46,7 +46,9 @@ def start_banner():
 def exit_banner():
     """Log the track estimator exit banner."""
     # banner()
-    logger.info("dpypeline has terminated succesfully! :)", extra={"simple": True})
+    logger.info(
+        "Track estimator has terminated succesfully! :)", extra={"simple": True}
+    )
 
 
 def track_estimator():
