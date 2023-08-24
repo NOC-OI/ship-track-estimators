@@ -31,6 +31,12 @@ After cloning the repository, navigate to the root directory of the package and 
 pip install -e .
 ```
 
+Otherwise, install the package by running:
+
+```
+pip install git+https://github.com/NOC-OI/ship-track-estimators.git@main#egg=track_estimators
+```
+
 ## Examples
 
 ## Python Scripts
@@ -52,7 +58,7 @@ track_estimator -i input.json -o "output" -t  data/historical_ships/historical_s
 - `-t` or `--track-file`: Filepath to the ship track data (mandatory)
 - `-s` or `--ship-id`: ID of the ship (mandatory)
 - `-lat` or `--latitude-id`: Name of the latitude column (mandatory)
-- `-lat` or `--latitude-id`: Name of the latitude column (mandatory)
+- `-lon` or `--longitude-id`: Name of the longitude column (mandatory)
 - `-ic` or `--id-col`: Name of the ship ID column (mandatory)
 - `-rts` or `--rts-smoother`: Apply the Rauch-Tung-Striebel (RTS) smoother
 - `-rev` or `--reverse`: Reverse the track
