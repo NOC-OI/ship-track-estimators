@@ -52,10 +52,10 @@ track_estimator -i input.json -o "output" -t  data/historical_ships/historical_s
 - `-t` or `--track-file`: Filepath to the ship track data (mandatory)
 - `-s` or `--ship-id`: ID of the ship (mandatory)
 - `-lat` or `--latitude-id`: Name of the latitude column (mandatory)
-- `-lon` or `--longitude-id`: Name of the longitude column (mandatory)
 - `-lat` or `--latitude-id`: Name of the latitude column (mandatory)
 - `-ic` or `--id-col`: Name of the ship ID column (mandatory)
-- `-rts` or `-rts-smoother`: Apply the Rauch-Tung-Striebel (RTS) smoother
+- `-rts` or `--rts-smoother`: Apply the Rauch-Tung-Striebel (RTS) smoother
+- `-rev` or `--reverse`: Reverse the track
 
 #### Example of `input.json`
 
@@ -67,7 +67,8 @@ track_estimator -i input.json -o "output" -t  data/historical_ships/historical_s
   "Q": [1e-4, 1e-4, 1e-6, 1e-6],
   "P": [1.0, 1.0, 1.0, 1.0],
   "dt": 1,
-  "nsteps": 500
+  "nsteps": 500,
+  "smooth": 1,
 }
 ```
 
@@ -89,6 +90,21 @@ This configuration will result in performing 2 sub-steps within each main step, 
 It produces the following results:
 
 ![UKF example](images/example.png)
+
+The speed over ground (SOG) and course over ground (COG) can also be smoothed prior to calculating their respective rates using the smooth parameter, which determines the number of data points to be used for the moving average.
+
+```json
+{
+  "dim": 4,
+  "H": [1, 1, 0, 0],
+  "R": [0.01, 0.01, 0, 0],
+  "Q": [1e-4, 1e-4, 1e-6, 1e-6],
+  "P": [1.0, 1.0, 1.0, 1.0],
+  "dt": -1,
+  "nsteps": 2,
+  "smooth": 2
+}
+```
 
 ## References
 
