@@ -107,7 +107,7 @@ class ShipTrack:
     def read_csv(
         self,
         csv_file: str,
-        ship_id: str | None = None,
+        ship_id: int | None = None,
         id_col: str = "id",
         lat_col: str = "lat",
         lon_col: str = "lon",
@@ -138,6 +138,9 @@ class ShipTrack:
         """
         # Read the csv file
         self.df = pd.read_csv(csv_file)
+
+        # Convert ship id to int
+        ship_id = int(ship_id)
 
         # Get the ship course and sort by date
         if ship_id is not None:
