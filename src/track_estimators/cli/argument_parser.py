@@ -76,6 +76,14 @@ def create_parser():
     )
 
     parser.add_argument(
+        "-rev",
+        "--reverse",
+        dest="reverse",
+        action="store_true",
+        help="Reverse the trajectory",
+    )
+
+    parser.add_argument(
         "-v",
         "--version",
         action="version",

@@ -9,7 +9,7 @@ import numpy as np
 from ..kalman_filters.non_linear_process import geodetic_dynamics
 from ..kalman_filters.unscented import UnscentedKalmanFilter
 from ..ship_track import ShipTrack
-from ..utils import generate_dts
+from ..utils import generate_dts, smooth
 from .argument_parser import __version__, create_parser
 from .json_loader import load_input_json
 
@@ -76,11 +76,15 @@ def track_estimator():
 
     logger.info(f"Reading input JSON from '{args.input_file}'...")
     settings = load_input_json(args.input_file)
-    dim, dt, nsteps, H, Q, R, P = get_input_settings(settings)
+    dim, dt, nsteps, H, Q, R, P, smooth_control = get_input_settings(settings)
 
     # -------------------------------------------------------------- #
     #                        Ship Track                              #
     # -------------------------------------------------------------- #
+    if not args.reverse:
+        reverse = False
+    else:
+        reverse = True
 
     ship_track = ShipTrack()
     ship_track.read_csv(
@@ -89,27 +93,36 @@ def track_estimator():
         id_col=args.id_col,
         lat_col=args.lat_id,
         lon_col=args.lon_id,
+        reverse=reverse,
     )
+
+    if smooth_control not in [-1, 0, 1, None]:
+        logger.info(f"Smoothing SOG and COG by {smooth_control}.")
+        ship_track.calculate_cog()
+        ship_track.calculate_sog()
+        ship_track.sog = smooth(ship_track.sog, smooth_control)
+        ship_track.cog = smooth(ship_track.cog, smooth_control)
 
     z = ship_track.get_measurements(include_sog=True, include_cog=True)
     ship_track.calculate_cog_rate()
     ship_track.calculate_sog_rate()
-    x0 = z[:, 0].reshape(-1, 1)
+    x0 = z[:, 0].reshape(-1, 1).copy()
 
     # -------------------------------------------------------------- #
     #                        Generate dts                            #
     # -------------------------------------------------------------- #
     if dt in [-1, 0, None]:
         dt_array = generate_dts(ship_track.dts, nsteps)
-        nsteps = len(dt_array)
     else:
         dt_array = generate_dts(ship_track.dts, 1)
-        nsteps = len(dt_array)
+
+    # Number of time steps
+    nsteps = len(dt_array)
 
     # -------------------------------------------------------------- #
     #                     Unscented Kalman Filter                    #
     # -------------------------------------------------------------- #
-    logger.info("Running the Unscented Kalman Filter...")
+    logger.info("Running the Unscented Kalman Filter.")
     ukf = UnscentedKalmanFilter(
         H=H, Q=Q, R=R, P=P, x0=x0, non_linear_process=geodetic_dynamics
     )
@@ -193,12 +206,17 @@ def get_input_settings(
     else:
         raise KeyError("nsteps not found in input settings")
 
+    if "smooth" in settings:
+        smooth_control = int(settings["smooth"])
+    else:
+        smooth_control = None
+
     H = _get_input_matrix(settings, "H", dim)
     Q = _get_input_matrix(settings, "Q", dim)
     R = _get_input_matrix(settings, "R", dim)
     P = _get_input_matrix(settings, "P", dim)
 
-    return dim, dt, nsteps, H, Q, R, P
+    return dim, dt, nsteps, H, Q, R, P, smooth_control
 
 
 def _get_input_matrix(settings: dict, matrix_name: str, dim: int) -> np.ndarray:
