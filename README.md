@@ -74,7 +74,6 @@ track_estimator -i input.json -o "output" -t  data/historical_ships/historical_s
   "P": [1.0, 1.0, 1.0, 1.0],
   "dt": 1,
   "nsteps": 500,
-  "smooth": 1,
 }
 ```
 
