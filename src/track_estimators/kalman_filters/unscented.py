@@ -55,11 +55,11 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.H = H
         self.n = H.shape[1]
 
-        self.Q = np.eye(self.n) if Q is None else Q
-        self.R = np.eye(self.n) if R is None else R
-        self.P_orig = np.eye(self.n) if P is None else P
-        self.P = np.eye(self.n) if P is None else P
-        self.x = np.zeros((self.n, 1)) if x0 is None else x0
+        self.Q = np.eye(self.n) if Q is None else np.asarray(Q)
+        self.R = np.eye(self.n) if R is None else np.asarray(R)
+        self.P_orig = np.eye(self.n) if P is None else np.asarray(P)
+        self.P = np.eye(self.n) if P is None else np.asarray(P)
+        self.x = np.zeros((self.n, 1)) if x0 is None else np.asarray(x0).reshape(-1, 1)
 
         # Sigma points and weights
         self.n_sigma_points = 2 * self.n + 1
@@ -225,9 +225,9 @@ class UnscentedKalmanFilter(KalmanFilterBase):
             z = self.measurement_model(z)
 
         # Kalman filter robustification
-        R = self.check_robustness(z, self.P, self.R)
+        # self.check_robustness(z, self.P, self.R)
+        R = self.R
 
-        print(R)
         # Add measurement noise
         measurement_white_noise = np.random.normal(
             scale=np.sqrt(np.diag(R)), size=(self.n)
@@ -241,8 +241,6 @@ class UnscentedKalmanFilter(KalmanFilterBase):
 
         # Eq. (8) Kalman gain
         K = np.dot(np.dot(self.P, self.H.T), np.linalg.pinv(S))
-
-        print("K", K)
 
         # 2b. Map the state prediction into the measurement space, and compute the residual error
         # Eq. (9), Innovation
@@ -365,7 +363,6 @@ class UnscentedKalmanFilter(KalmanFilterBase):
 
         judging_index = self.criterion_index(zn, P, R)
 
-        print("*****************************")
         print(judging_index, lambda_factor)
 
         while judging_index > chi_alpha:
@@ -386,7 +383,6 @@ class UnscentedKalmanFilter(KalmanFilterBase):
             judging_index = self.criterion_index(zn, P, R)
 
             print(judging_index, lambda_factor)
-        # print(judging_index, lambda_factor)
 
         return R
 
@@ -423,9 +419,10 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         # Eq. (14) / Eq. (11)
         y = z - self.x
         P = np.dot(self.H, np.dot(P, self.H.T)) + R
+        Pinv = np.linalg.pinv(P)
 
         # Calculate criterion index
-        criterion_index = np.dot(np.dot(y.T, np.linalg.pinv(P)), y)
+        criterion_index = np.dot(np.dot(y.T, Pinv), y)
         criterion_index = np.abs(criterion_index)
 
         return criterion_index.item()
@@ -476,11 +473,12 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         y = z - self.x
         P = np.dot(self.H, np.dot(P, self.H.T)) + R
         Pinv = np.linalg.pinv(P)
+
         denominator = np.dot(np.dot(Pinv, R), Pinv)
         denominator = np.dot(np.dot(y.T, denominator), y)
 
         # Propagate the lambda factor
-        lambda_factor += numerator / denominator
+        lambda_factor = lambda_factor + numerator / denominator
 
         return lambda_factor.item()
 
