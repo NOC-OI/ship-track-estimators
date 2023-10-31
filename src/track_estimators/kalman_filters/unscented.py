@@ -55,11 +55,11 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.H = H
         self.n = H.shape[1]
 
-        self.Q = np.eye(self.n) if Q is None else Q
-        self.R = np.eye(self.n) if R is None else R
-        self.P_orig = np.eye(self.n) if P is None else P
-        self.P = np.eye(self.n) if P is None else P
-        self.x = np.zeros((self.n, 1)) if x0 is None else x0
+        self.Q = np.eye(self.n) if Q is None else np.asarray(Q)
+        self.R = np.eye(self.n) if R is None else np.asarray(R)
+        self.P_orig = np.eye(self.n) if P is None else np.asarray(P)
+        self.P = np.eye(self.n) if P is None else np.asarray(P)
+        self.x = np.zeros((self.n, 1)) if x0 is None else np.asarray(x0).reshape(-1, 1)
 
         # Sigma points and weights
         self.n_sigma_points = 2 * self.n + 1
@@ -207,6 +207,14 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.P = np.dot(np.dot(S, self.weights), S.T) + self.Q
 
     def update(self, z: np.ndarray) -> None:
+        """
+        Update the state.
+
+        Parameters
+        ----------
+        z
+            Measurement vector.
+        """
         # Ensure correct shape of observation vector
         z = z.reshape(-1, 1)
 
@@ -216,14 +224,20 @@ class UnscentedKalmanFilter(KalmanFilterBase):
             ), "Measurement model must be callable."
             z = self.measurement_model(z)
 
+        # Kalman filter robustification
+        # self.check_robustness(z, self.P, self.R)
+        R = self.R
+
         # Add measurement noise
-        z += np.random.normal(scale=np.sqrt(np.diag(self.R)), size=(self.n)).reshape(
-            -1, 1
-        )
+        measurement_white_noise = np.random.normal(
+            scale=np.sqrt(np.diag(R)), size=(self.n)
+        ).reshape(-1, 1)
+
+        z += measurement_white_noise
 
         # 2a. Compute the Kalman gain using the a priori covariance
         # Innovation covariance
-        S = np.dot(self.H, np.dot(self.P, self.H.T)) + self.R
+        S = np.dot(self.H, np.dot(self.P, self.H.T)) + R  # self.R
 
         # Eq. (8) Kalman gain
         K = np.dot(np.dot(self.P, self.H.T), np.linalg.pinv(S))
@@ -248,7 +262,7 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.P = np.dot(
             np.dot(identity - np.dot(K, self.H), self.P),
             (identity - np.dot(K, self.H)).T,
-        ) + np.dot(np.dot(K, self.R), K.T)
+        ) + np.dot(np.dot(K, R), K.T)
 
     def rts_step(self, fwd_means, fwd_vars, ship_track: ShipTrack, *args, **kwargs):
         """
@@ -335,3 +349,163 @@ class UnscentedKalmanFilter(KalmanFilterBase):
             P_fwd[step] += np.dot(np.dot(K, P_fwd[step + 1] - P_bwd), K.T)
 
         return x_fwd, P_fwd
+
+    def check_robustness(
+        self, z: np.ndarray, P: np.ndarray, R: np.ndarray
+    ) -> np.ndarray:
+        lambda_factor = 1
+        chi_alpha = 50
+
+        measurement_white_noise = np.random.normal(
+            scale=np.sqrt(np.diag(R)), size=(self.n)
+        ).reshape(-1, 1)
+        zn = z + measurement_white_noise
+
+        judging_index = self.criterion_index(zn, P, R)
+
+        print(judging_index, lambda_factor)
+
+        while judging_index > chi_alpha:
+            # Update the lambda factor
+            measurement_white_noise = np.random.normal(
+                scale=np.sqrt(np.diag(R)), size=(self.n)
+            ).reshape(-1, 1)
+            zn = z + measurement_white_noise
+
+            lambda_factor = self.update_lambda_factor(
+                lambda_factor, judging_index, chi_alpha, zn, P, R
+            )
+
+            # Scale measurement uncertainty
+            R = self.scale_measurement_uncertainty(R, lambda_factor)
+
+            # Update the judging index
+            judging_index = self.criterion_index(zn, P, R)
+
+            print(judging_index, lambda_factor)
+
+        return R
+
+    def criterion_index(self, z: np.ndarray, P: np.ndarray, R: np.ndarray) -> float:
+        """
+        Calculate the criterion index.
+
+        The criterion index is based on the Mahalanobis distance
+        between the current state estimate and the measurement.
+
+        Parameters
+        ----------
+        z
+            Measurement vector.
+        P
+            Covariance matrix.
+        R
+            Measurement covariance.
+
+        Returns
+        -------
+        criterion_index
+            Criterion index.
+
+        References
+        ----------
+        Chang, G.
+        Robust Kalman Filtering Based on Mahalanobis Distance as Outlier Judging Criterion.
+        J Geod 2014, 88 (4), 391-401. https://doi.org/10.1007/s00190-013-0690-8.
+        """
+        # Ensure correct shape of observation vector
+        z = z.reshape(-1, 1)
+
+        # Eq. (14) / Eq. (11)
+        y = z - self.x
+        P = np.dot(self.H, np.dot(P, self.H.T)) + R
+        Pinv = np.linalg.pinv(P)
+
+        # Calculate criterion index
+        criterion_index = np.dot(np.dot(y.T, Pinv), y)
+        criterion_index = np.abs(criterion_index)
+
+        return criterion_index.item()
+
+    def update_lambda_factor(
+        self,
+        lambda_factor: float,
+        criterion_index: float,
+        chi_alpha: float,
+        z: np.ndarray,
+        P: np.ndarray,
+        R: np.ndarray,
+    ) -> None:
+        """
+        Update the lambda factor.
+
+        Parameters
+        ----------
+        lambda_factor
+            Lambda factor.
+        criterion_index
+            Criterion index.
+        chi_alpha
+            Chi alpha.
+        z
+            Measurement vector.
+        P
+            Covariance matrix.
+        R
+            Measurement covariance.
+
+        Returns
+        -------
+        lambda_factor
+            Updated lambda factor.
+
+        References
+        ----------
+        Chang, G.
+        Robust Kalman Filtering Based on Mahalanobis Distance as Outlier Judging Criterion.
+        J Geod 2014, 88 (4), 391-401. https://doi.org/10.1007/s00190-013-0690-8.
+        """
+        # Eq. (18)
+        # Numerator
+        numerator = criterion_index - chi_alpha
+
+        # Denominator
+        y = z - self.x
+        P = np.dot(self.H, np.dot(P, self.H.T)) + R
+        Pinv = np.linalg.pinv(P)
+
+        denominator = np.dot(np.dot(Pinv, R), Pinv)
+        denominator = np.dot(np.dot(y.T, denominator), y)
+
+        # Propagate the lambda factor
+        lambda_factor = lambda_factor + numerator / denominator
+
+        return lambda_factor.item()
+
+    def scale_measurement_uncertainty(
+        self, R: np.ndarray, lambda_factor: float
+    ) -> np.ndarray:
+        """
+        Scale the measurement uncertainty by a factor lambda.
+
+        Parameters
+        ----------
+        R
+            Measurement covariance.
+        lambda_factor
+            Scaling factor.
+
+        Returns
+        -------
+        R
+            Scaled measurement covariance.
+
+        References
+        ----------
+        Chang, G.
+        Robust Kalman Filtering Based on Mahalanobis Distance as Outlier Judging Criterion.
+        J Geod 2014, 88 (4), 391-401. https://doi.org/10.1007/s00190-013-0690-8.
+        """
+        # Eq. (13)
+        R = R * lambda_factor
+        return R
