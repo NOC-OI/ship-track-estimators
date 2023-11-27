@@ -12,7 +12,7 @@ from track_estimators.utils import generate_dts
 pdf = PdfPages("results.pdf")
 
 # Historical data
-df = pd.read_csv("data/historical_ships/historical_ship_data.csv")
+df = pd.read_csv("../data/historical_ships/historical_ship_data.csv")
 ids = df["primary.id"].unique().tolist()
 ids.pop(1)
 
@@ -25,7 +25,7 @@ for id in ids:
     # -------------------------------------------------------------- #
     ship_track = ShipTrack()
     ship_track.read_csv(
-        csv_file="data/historical_ships/historical_ship_data.csv",
+        csv_file="../data/historical_ships/historical_ship_data.csv",
         ship_id=id,
         id_col="primary.id",
         lat_col="lat",

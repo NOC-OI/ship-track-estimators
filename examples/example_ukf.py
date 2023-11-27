@@ -13,7 +13,7 @@ from track_estimators.utils import generate_dts
 # -------------------------------------------------------------- #
 ship_track = ShipTrack()
 ship_track.read_csv(
-    csv_file="data/historical_ships/historical_ship_data.csv",
+    csv_file="../data/historical_ships/historical_ship_data.csv",
     ship_id="01203792",
     id_col="primary.id",
     lat_col="lat",
@@ -22,6 +22,11 @@ ship_track.read_csv(
 )
 
 z = ship_track.get_measurements(include_sog=True, include_cog=True)
+
+# Optionally, apply a savgol filter to smooth the SOG and COG
+# from scipy.signal import savgol_filter
+# ship_track.sog = savgol_filter(ship_track.sog, 4, 2)
+# ship_track.cog = savgol_filter(ship_track.cog, 4, 2)
 
 # Calculate cog and sog rates
 ship_track.calculate_cog_rate()
@@ -53,7 +58,7 @@ ukf = UnscentedKalmanFilter(
 )
 
 # Generate dt array
-dt_array = generate_dts(ship_track.dts, 4)
+dt_array = generate_dts(ship_track.dts, 2)
 
 # Run the UKF
 predictions, estimate_vars = ukf.run(
@@ -86,7 +91,7 @@ ax.scatter(
     predictions[:, 1],
     transform=ccrs.PlateCarree(),
     marker="*",
-    s=50,
+    s=25,
     label="Kalman filter",
     alpha=0.6,
 )

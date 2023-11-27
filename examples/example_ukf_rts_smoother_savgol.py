@@ -14,7 +14,7 @@ from track_estimators.utils import generate_dts
 # -------------------------------------------------------------- #
 ship_track = ShipTrack()
 ship_track.read_csv(
-    csv_file="data/historical_ships/historical_ship_data.csv",
+    csv_file="../data/historical_ships/historical_ship_data.csv",
     ship_id="01205070",
     id_col="id",
     lat_col="lat",

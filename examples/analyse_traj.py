@@ -11,7 +11,7 @@ from track_estimators.ship_track import ShipTrack
 # ------------------------------------------------------ #
 #               Historical Ship Track                    #
 # ------------------------------------------------------ #
-csv_file = "data/historical_ships/historical_ship_data.csv"
+csv_file = "../data/historical_ships/historical_ship_data.csv"
 ship_track = ShipTrack()
 ship_track.read_csv(
     csv_file, ship_id="01203823", id_col="primary.id", lat_col="lat", lon_col="lon"
@@ -51,7 +51,7 @@ plt.show()
 #                   Modern Ship Track                    #
 # ------------------------------------------------------ #
 # Modern ShipTrack
-csv_file = "data/modern_ships/modern_ship_data.csv"
+csv_file = "../data/modern_ships/modern_ship_data.csv"
 ship_track = ShipTrack()
 ship_track.read_csv(
     csv_file, ship_id="WCE5063", id_col="id", lat_col="lat", lon_col="lon"

@@ -13,7 +13,7 @@ from track_estimators.utils import generate_dts
 # -------------------------------------------------------------- #
 ship_track = ShipTrack()
 ship_track.read_csv(
-    csv_file="data/historical_ships/historical_ship_data.csv",
+    csv_file="../data/historical_ships/historical_ship_data.csv",
     ship_id="01204106",
     id_col="id",
     lat_col="lat",
@@ -94,15 +94,15 @@ ax.gridlines(
     alpha=0.5,
     linestyle="-.",
 )
-ax.scatter(
-    predictions[:, 0],
-    predictions[:, 1],
-    transform=ccrs.PlateCarree(),
-    marker="*",
-    s=s,
-    label="Kalman filter - Forward",
-    alpha=alpha,
-)
+# ax.scatter(
+#     predictions[:, 0],
+#     predictions[:, 1],
+#     transform=ccrs.PlateCarree(),
+#     marker="*",
+#     s=s,
+#     label="Kalman filter - Forward",
+#     alpha=alpha,
+# )
 
 ax.scatter(
     predictions_smoothed[:, 0],
@@ -110,7 +110,7 @@ ax.scatter(
     transform=ccrs.PlateCarree(),
     marker="o",
     s=s,
-    label="Kalman filter - RTS",
+    label="Kalman filter",
     alpha=alpha,
 )
 
@@ -124,7 +124,7 @@ ax.scatter(
     alpha=alpha,
 )
 
-plt.xlim(z[0, :].min() - 5, z[0, :].max() + 5)
-plt.ylim(z[1, :].min() - 5, z[1, :].max() + 5)
+plt.xlim(z[0, :].min() - 10, z[0, :].max() + 10)
+plt.ylim(z[1, :].min() - 10, z[1, :].max() + 10)
 plt.legend()
 plt.show()
