@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
+
 from track_estimators.ship_track import ShipTrack
 
 

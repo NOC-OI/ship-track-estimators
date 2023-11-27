@@ -2,7 +2,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel
-from track_estimators.gaussian_processes.gp import GPRegression
+from track_estimators.gaussian_processes.gaussian_process import GPRegression
 from track_estimators.ship_track import ShipTrack
 from track_estimators.utils import generate_dts
 

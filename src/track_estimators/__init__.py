@@ -29,4 +29,5 @@ __all__ = [
     "constants",
     "ship_track",
     "performance_metrics",
+    "gaussian_processes",
 ]
