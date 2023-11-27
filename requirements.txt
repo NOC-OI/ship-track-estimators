@@ -1,4 +1,4 @@
-pandas>=2.03
+pandas>=2.0.3
 numpy>=1.25.2
 scipy>=1.11.1
 geographiclib>=2.0
