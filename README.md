@@ -6,7 +6,7 @@ This Python library implements an Unscented Kalman Filter with geodetic dynamics
 
 #### Gausian Processes
 
-This library leverages the functionalities of Gaussian process models available in scikit-learn [5]. Users can leverage all features of Gaussian process models seamlessly through this toolkit.
+This library leverages the functionalities of Gaussian Process models available in scikit-learn [5]. Users can use all features of Gaussian Process models seamlessly through this toolkit.
 
 ## Conda environment
 
