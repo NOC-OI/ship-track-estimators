@@ -1,14 +1,13 @@
 # Estimators of ship tracks
 
-This Python library implements an Unscented Kalman Filter with geodetic dynamics, as detailed in references [1] and [2].
-Additionally, the library includes the implementation of the Unscented Rauch-Tung-Striebel Smoother (URTSS) algorithm, which is discussed in reference [3].
+This Python library implements an Unscented Kalman Filter with geodetic dynamics, as described in references [1] and [2]. Furthermore, it includes the implementation of the Unscented Rauch-Tung-Striebel Smoother (URTSS) algorithm, elaborated in reference [3]. The implemented outlier robustification method is detailed in reference [4].
 
 ## Conda environment
 
 To utilise this package, it should be installed within a dedicated Conda environment. You can create this environment using the following command:
 
 ```bash
-conda env create -n shiptrack-estimators -f environment.yml python=3.10
+conda env create -n shiptrack-estimators -f environment.yml
 ```
 
 To activate the conda environment use:
@@ -19,22 +18,36 @@ conda activate shiptrack-estimators
 
 ## Install the package
 
-To install this library, begin by cloning this repository:
+To install this library, follow these steps:
+
+### Cloning the repository
+
+Begin by cloning this repository using the following command:
 
 ```bash
 git clone git@github.com:NOC-OI/ship-track-estimators.git
 ```
 
-After cloning the repository, navigate to the root directory of the package and execute the following command:
+### Pip installation
+
+Once the repository is cloned, navigate to the root directory of the package and execute the following command:
 
 ```bash
 pip install -e .
 ```
 
-Otherwise, install the package by running:
+If you prefer to install the package directly from the repository without cloning it, use the following command:
 
 ```
 pip install git+https://github.com/NOC-OI/ship-track-estimators.git@main#egg=track_estimators
+```
+
+### Installation using `setup.py`
+
+Alternatively, if you wish to install using the `setup.py` script, after cloning the repository, navigate to the root directory of the package and execute the following command:
+
+```
+python setup.py install
 ```
 
 ## Examples
@@ -116,7 +129,9 @@ The speed over ground (SOG) and course over ground (COG) can also be smoothed pr
 1. [Unscented Kalman filter for long-distance vessel tracking in geodetic coordinates][1]
 1. [Unscented Filtering and Nonlinear Estimation][2]
 1. [Unscented Rauch-Tung-Striebel Smoother][3]
+1. [Robust Kalman filtering based on Mahalanobis distance as outlier judging criterion][4]
 
 [1]: https://doi.org/10.1016/j.apor.2022.103205
 [2]: https://ieeexplore.ieee.org/document/1271397
 [3]: http://ieeexplore.ieee.org/document/4484208/
+[4]: https://link.springer.com/article/10.1007/s00190-013-0690-8
