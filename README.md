@@ -1,6 +1,12 @@
 # Estimators of ship tracks
 
+### Kalman filters
+
 This Python library implements an Unscented Kalman Filter with geodetic dynamics, as described in references [1] and [2]. Furthermore, it includes the implementation of the Unscented Rauch-Tung-Striebel Smoother (URTSS) algorithm, elaborated in reference [3]. The implemented outlier robustification method is detailed in reference [4].
+
+### Gausian Processes
+
+This library leverages the functionalities of Gaussian process models available in scikit-learn [5]. Users can leverage all features of Gaussian process models seamlessly through this toolkit.
 
 ## Conda environment
 
@@ -130,8 +136,10 @@ The speed over ground (SOG) and course over ground (COG) can also be smoothed pr
 1. [Unscented Filtering and Nonlinear Estimation][2]
 1. [Unscented Rauch-Tung-Striebel Smoother][3]
 1. [Robust Kalman filtering based on Mahalanobis distance as outlier judging criterion][4]
+1. [scikit-learn: Gaussian Processes][5]
 
 [1]: https://doi.org/10.1016/j.apor.2022.103205
 [2]: https://ieeexplore.ieee.org/document/1271397
 [3]: http://ieeexplore.ieee.org/document/4484208/
 [4]: https://link.springer.com/article/10.1007/s00190-013-0690-8
+[5]: https://scikit-learn.org/stable/modules/gaussian_process.html
