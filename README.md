@@ -33,13 +33,19 @@ conda deactivate
 Alternatively, instead of using Conda, you can utilise a dedicated pyenv environment to install this package. Assuming you already have pyenv installed (if not, see the pyenv installation instructions [here](https://github.com/pyenv/pyenv#installation)), the first step is to install Python 3.10:
 
 ```bash
-pyenv install 3.10
+pyenv install 3.10.13
 ```
 
 You can then create a virtual environment using the following command:
 
 ```bash
 pyenv virtualenv 3.10.13 shiptrack-estimators
+```
+
+To activate the pyenv environment use:
+
+```bash
+pyenv activate shiptrack-estimators
 ```
 
 Whenever you need the pyenv environment, execute:
