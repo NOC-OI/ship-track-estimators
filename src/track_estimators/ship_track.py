@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -59,7 +59,7 @@ class ShipTrack:
 
     def __init__(
         self,
-        csv_file: str | None = None,
+        csv_file: Optional[str] = None,
         estimate_cog: bool = False,
         estimate_sog: bool = False,
         estimate_sog_rate: bool = False,
@@ -107,7 +107,7 @@ class ShipTrack:
     def read_csv(
         self,
         csv_file: str,
-        ship_id: int | None = None,
+        ship_id: Optional[Union[str, int]] = None,
         id_col: str = "id",
         lat_col: str = "lat",
         lon_col: str = "lon",
@@ -341,7 +341,7 @@ class ShipTrack:
         self,
         figsize: tuple = (20, 15),
         scatter_kwargs: dict = {"s": 10, "color": "red"},
-        savefig: str | None = None,
+        savefig: Optional[str] = None,
         show: bool = True,
     ) -> None:
         """

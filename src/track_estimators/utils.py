@@ -173,7 +173,7 @@ def smooth(y: np.ndarray, box_pts: int) -> np.ndarray:
 
 
 def generate_dts(
-    dts: np.ndarray | List[Union[int, float]], substeps: int
+    dts: Union[np.ndarray, List[Union[int, float]]], substeps: int
 ) -> np.ndarray:
     """
     Generate an array of time steps based on the desired number of sub-steps.

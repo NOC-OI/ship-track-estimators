@@ -7,7 +7,7 @@ Applied Ocean Research 2022, 124, 103205.
 https://doi.org/10.1016/j.apor.2022.103205.
 """
 import logging
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 import scipy.linalg
@@ -24,8 +24,8 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         R=None,
         P=None,
         x0=None,
-        non_linear_process: Callable | None = None,
-        measurement_model: Callable | None = None,
+        non_linear_process: Optional[Callable] = None,
+        measurement_model: Optional[Callable] = None,
     ):
         """
         Initialize the Unscented Kalman Filter.
@@ -74,7 +74,7 @@ class UnscentedKalmanFilter(KalmanFilterBase):
         self.measurement_model = measurement_model
 
     def compute_sigma_points(
-        self, x: np.ndarray | None = None, P: np.ndarray | None = None
+        self, x: Optional[np.ndarray] = None, P: Optional[np.ndarray] = None
     ) -> np.ndarray:
         """
         Compute the sigma points the UKF using the prior state estimate and covariance matrix.
@@ -106,7 +106,7 @@ class UnscentedKalmanFilter(KalmanFilterBase):
 
         return self.sigma_points
 
-    def compute_weights(self, weight0: float | None = None) -> np.ndarray:
+    def compute_weights(self, weight0: Optional[float] = None) -> np.ndarray:
         """
         Compute weights of the unscented kalman filter.
 
@@ -143,7 +143,7 @@ class UnscentedKalmanFilter(KalmanFilterBase):
 
     def predict(
         self,
-        non_linear_process: Callable | None = None,
+        non_linear_process: Optional[Callable] = None,
         **non_linear_process_kwargs,
     ) -> None:
         """

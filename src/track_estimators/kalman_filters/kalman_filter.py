@@ -36,7 +36,7 @@ class KalmanFilterBase:
     def run(
         self,
         nsteps: int,
-        dt: int | float | List[Union[int, float]] | np.ndarray,
+        dt: Union[int, float, List[Union[int, float]], np.ndarray],
         ship_track: ShipTrack,
         *args,
         **kwargs
