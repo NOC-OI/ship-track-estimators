@@ -5,28 +5,27 @@ requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
 install_requires = []
 
 [project]
-authors = [
-  {name = "Joao Morado", email = "joao.morado@noc.ac.uk"}
-]
+authors = [{name = "Joao Morado", email = "joao.morado@noc.ac.uk"}]
 classifiers = [
   "License :: OSI Approved :: GPL License",
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
-  "Topic :: Oceonography Modelling",
+  "Topic :: Oceanography Modeling",
   "Topic :: Scientific/Engineering",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.9"
 ]
-dependencies = [
-  "scipy",
-  "numpy"
+description = "A software package designed for estimating historical ship tracks utilising either Kalman filters or Gaussian processes."
+dynamic = [
+  "version",
+  "dependencies"
 ]
-description = "Estimator of ship tracks."
-dynamic = ["version"]
 keywords = [
   "Ship tracking",
-  "Kalman Filters"
+  "Kalman Filters",
+  "Gaussian Processes",
+  "Historical Ship Tracks"
 ]
 license = {file = "LICENSE"}
 name = "track_estimators"
@@ -75,6 +74,9 @@ select = [
   # pydocstyle
   "D"
 ]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
 namespaces = true
