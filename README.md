@@ -10,16 +10,42 @@ This library leverages the functionalities of Gaussian Process models available 
 
 ## Conda environment
 
-To utilise this package, it should be installed within a dedicated Conda environment. You can create this environment using the following command:
+To utilise this package, it should be installed within a dedicated Conda environment. You can create a Conda environment with Python 3.10 using the following command:
 
 ```bash
-conda env create -n shiptrack-estimators -f environment.yml
+conda create -n shiptrack-estimators python=3.10 -c conda-forge
 ```
 
 To activate the conda environment use:
 
 ```bash
 conda activate shiptrack-estimators
+```
+
+Whenever you need to deactivate the Conda environment, execute:
+
+```bash
+conda deactivate
+```
+
+## Pyenv environment
+
+Alternatively, instead of using Conda, you can utilise a dedicated pyenv environment to install this package. Assuming you already have pyenv installed (if not, see the pyenv installation instructions [here](https://github.com/pyenv/pyenv#installation)), the first step is to install Python 3.10:
+
+```bash
+pyenv install 3.10
+```
+
+You can then create a virtual environment using the following command:
+
+```bash
+pyenv virtualenv 3.10.13 shiptrack-estimators
+```
+
+Whenever you need the pyenv environment, execute:
+
+```bash
+pyenv deactivate
 ```
 
 ## Install the package
@@ -46,14 +72,6 @@ If you prefer to install the package directly from the repository without clonin
 
 ```
 pip install git+https://github.com/NOC-OI/ship-track-estimators.git@main#egg=track_estimators
-```
-
-### Installation using `setup.py`
-
-Alternatively, if you wish to install using the `setup.py` script, after cloning the repository, navigate to the root directory of the package and execute the following command:
-
-```
-python setup.py install
 ```
 
 ## Examples
