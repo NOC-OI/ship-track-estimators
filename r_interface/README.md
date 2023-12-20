@@ -16,7 +16,7 @@ The only package required to execute the `.R` scripts in this directory is `reti
 ### Command Line
 
 ```bash
-Rscript -e "install.packages('https://cran.r-project.org/src/contrib/Archive/reticulate/reticulate_1.32.0.tar.gz', repos=NULL, type='source')"
+Rscript -e "install.packages('https://cran.r-project.org/src/contrib/Archive/reticulate/reticulate_1.4.tar.gz', repos=NULL, type='source')"
 ```
 
 ### R Studio
