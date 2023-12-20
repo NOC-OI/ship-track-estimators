@@ -2,7 +2,8 @@
 library(reticulate)
 
 # Use the correct conda environment
-use_condaenv("shiptrack-estimators", required=TRUE)
+# Not required if environment is set up when script is run
+# use_condaenv("shiptrack-estimators", required=TRUE)
 
 # Use reticulate to import necessary Python libraries
 np <- import("numpy")
