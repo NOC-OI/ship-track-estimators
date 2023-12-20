@@ -20,7 +20,7 @@ utils_module  <- import("track_estimators.utils")
 # Create a ShipTrack instance
 ship_track  <- ship_track_module$ShipTrack()
 ship_track$read_csv(
-  csv_file="/home/joaomorado/git_repos/shiptrackers_repositores/clean/data/historical_ships/historical_ship_data.csv",
+  csv_file="../data/historical_ships/historical_ship_data.csv",
   ship_id="01203792",
   id_col="primary.id",
   lat_col="lat",
